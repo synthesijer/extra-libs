@@ -68,7 +68,7 @@ public class AXI_Writer extends HDLModule{
 		port.awvalid.getSignal().setAssign(init, HDLPreDefinedConstant.HIGH);
 		port.awlen.getSignal().setAssign(init, len.getSignal());
 		HDLSignal write_counter = newSignal("write_counter", HDLPrimitiveType.genSignedType(32));
-		write_counter.setAssign(init, newExpr(HDLOp.PADDINGHEAD, port.awlen.getSignal(), new HDLValue("24", HDLPrimitiveType.genIntegerType())));
+		write_counter.setAssign(init, newExpr(HDLOp.PADDINGHEAD_ZERO, port.awlen.getSignal(), new HDLValue("24", HDLPrimitiveType.genIntegerType())));
 		
 		// WRITE0
 		HDLExpr awready_high = newExpr(HDLOp.EQ, port.awready.getSignal(), HDLPreDefinedConstant.HIGH);
