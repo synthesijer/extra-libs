@@ -35,7 +35,7 @@ public class AXI_Writer extends HDLModule{
 		addr = Utils.genInputPort(this, "addr", 32);
 		len = Utils.genInputPort(this, "len", 8);
 		
-		fifo.wclk.getSignal().setAssign(null, getSysClk().getSignal());
+		fifo.rclk.getSignal().setAssign(null, getSysClk().getSignal());
 		
 		setDefaultSetting(port);
 		
