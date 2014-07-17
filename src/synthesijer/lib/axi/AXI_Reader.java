@@ -22,7 +22,7 @@ public class AXI_Reader extends HDLModule{
 	private HDLPort addr, len;
 
 	public AXI_Reader(){
-		super("axi_reader", "user_clk", "user_reset");
+		super("axi_reader", "clk", "reset");
 		int width = 64;
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
 		
@@ -35,15 +35,17 @@ public class AXI_Reader extends HDLModule{
 		addr = Utils.genInputPort(this, "addr", 32);
 		len = Utils.genInputPort(this, "len", 8);
 		
+		fifo.wclk.getSignal().setAssign(null, getSysClk().getSignal());
+		
 		setDefaultSetting(port);
 		
 		genStateMachine(newSequencer("main"));
+		
 	}
 	
 	private void genStateMachine(HDLSequencer s){
 		HDLSequencer.SequencerState idle = s.getIdleState();
 		// after reset
-		port.bready.getSignal().setAssign(idle, HDLPreDefinedConstant.HIGH);
 		port.rready.getSignal().setAssign(idle, HDLPreDefinedConstant.HIGH);
 		
 		// IDLE: wait for request
