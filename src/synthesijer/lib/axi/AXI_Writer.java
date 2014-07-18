@@ -23,7 +23,7 @@ public class AXI_Writer extends HDLModule{
 
 	public AXI_Writer(){
 		super("axi_writer", "clk", "reset");
-		int width = 64;
+		int width = 256;
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
 		
 		fifo = new FifoPort(this, "fifo_", width);
@@ -88,7 +88,12 @@ public class AXI_Writer extends HDLModule{
 		write_counter.setAssign(write, newExpr(HDLOp.SUB, write_counter, HDLPreDefinedConstant.INTEGER_ONE));
 		HDLSequencer.SequencerState write_next = s.addSequencerState("write_next");
 		write.addStateTransit(write_next); // write -> write_next
-		fifo.re.getSignal().setAssign(write0, HDLPreDefinedConstant.HIGH); // for next
+		HDLExpr last_word = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ONE);
+		port.wlast.getSignal().setAssign(write0, last_word); 
+		fifo.re.getSignal().setAssign(write0, 
+				newExpr(HDLOp.IF,	last_word, // last word
+						HDLPreDefinedConstant.LOW,
+						HDLPreDefinedConstant.HIGH)); // for next
 		
 		// WRITE_NEXT
 		fifo.re.getSignal().setAssign(write0, HDLPreDefinedConstant.LOW);
@@ -96,6 +101,7 @@ public class AXI_Writer extends HDLModule{
 		HDLExpr write_done = newExpr(HDLOp.EQ, write_counter, newExpr(HDLOp.ID, HDLPreDefinedConstant.INTEGER_ZERO));
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, write_done), idle);
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, newExpr(HDLOp.NOT, write_done)), write);
+		port.wlast.getSignal().setAssign(write_next, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
 	}
 
 	private void setDefaultSetting(AxiMasterWritePort port){
@@ -108,7 +114,8 @@ public class AXI_Writer extends HDLModule{
 		// protocol
 		port.awprot.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3)));
 		// strobe
-		port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11111111), HDLPrimitiveType.genVectorType(8)));
+		//port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11111111), HDLPrimitiveType.genVectorType(8)));
+		port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFFFFFF), HDLPrimitiveType.genVectorType(32)));
 	}
 	
 	public static void main(String... args){

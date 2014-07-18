@@ -23,7 +23,7 @@ public class AXI_Reader extends HDLModule{
 
 	public AXI_Reader(){
 		super("axi_reader", "clk", "reset");
-		int width = 64;
+		int width = 256;
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
 		
 		fifo = new FifoPort(this, "fifo_", width);
