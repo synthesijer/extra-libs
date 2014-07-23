@@ -62,7 +62,7 @@ public class AXI_Writer extends HDLModule{
 						newExpr(HDLOp.GEQ, fifo.length.getSignal(), len.getSignal()),
 						newExpr(HDLOp.AND,
 								newExpr(HDLOp.EQ, fifo.empty.getSignal(), HDLPreDefinedConstant.LOW),
-								newExpr(HDLOp.EQ, fifo.length.getSignal(), newExpr(HDLOp.ID, HDLPreDefinedConstant.INTEGER_ZERO))));
+								newExpr(HDLOp.EQ, fifo.length.getSignal(), newExpr(HDLOp.ID, HDLPreDefinedConstant.VECTOR_ZERO))));
 		init.addStateTransit(fifo_ready, write0); // init -> write0
 		port.awaddr.getSignal().setAssign(init, addr.getSignal());
 		port.awvalid.getSignal().setAssign(init, HDLPreDefinedConstant.HIGH);
@@ -98,7 +98,7 @@ public class AXI_Writer extends HDLModule{
 		// WRITE_NEXT
 		fifo.re.getSignal().setAssign(write0, HDLPreDefinedConstant.LOW);
 		HDLExpr wready = newExpr(HDLOp.EQ, port.wready.getSignal(), HDLPreDefinedConstant.HIGH);
-		HDLExpr write_done = newExpr(HDLOp.EQ, write_counter, newExpr(HDLOp.ID, HDLPreDefinedConstant.INTEGER_ZERO));
+		HDLExpr write_done = newExpr(HDLOp.EQ, write_counter, newExpr(HDLOp.ID, HDLPreDefinedConstant.VECTOR_ZERO));
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, write_done), idle);
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, newExpr(HDLOp.NOT, write_done)), write);
 		port.wlast.getSignal().setAssign(write_next, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));

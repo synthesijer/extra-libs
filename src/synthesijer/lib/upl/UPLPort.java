@@ -18,6 +18,7 @@ public class UPLPort extends HDLModule{
 	// for Software I/F
 	public boolean ready;
 	public boolean op_done;
+	public boolean op_start;
 	public int send_length;
 	public int recv_length;
 	public int[] data;
@@ -25,17 +26,18 @@ public class UPLPort extends HDLModule{
 	// for HDLModule
 	UPLIn in;
 	UPLOut out;
-	HDLPort pReady, pOpDone, pSendLength, pRecvLength;
+	HDLPort pReady, pOpDone, pOpStart, pSendLength, pRecvLength;
 	HDLPort pDataRaddr, pDataDout, pDataWaddr, pDataDin, pDataWe;
 	
 	private HDLValue ZERO = new HDLValue("0", HDLPrimitiveType.genSignedType(32));
-	private HDLValue ONE = new HDLValue("0", HDLPrimitiveType.genSignedType(32));
+	private HDLValue ONE = new HDLValue("1", HDLPrimitiveType.genSignedType(32));
 	
 	public UPLPort(String... args){
 		super("uplport", "UPLGlobalClk", "UPLReset");
 
 		pReady = newPort("ready", HDLPort.DIR.OUT, HDLPrimitiveType.genBitType());
 		pOpDone = newPort("op_done", HDLPort.DIR.IN, HDLPrimitiveType.genBitType());
+		pOpStart = newPort("op_start", HDLPort.DIR.IN, HDLPrimitiveType.genBitType());
 		pSendLength = newPort("send_length", HDLPort.DIR.IN, HDLPrimitiveType.genSignedType(32));
 		pRecvLength = newPort("recv_length", HDLPort.DIR.OUT, HDLPrimitiveType.genSignedType(32));
 		// for data[]
@@ -52,19 +54,21 @@ public class UPLPort extends HDLModule{
 	
 	private HDLSequencer.SequencerState recvWaitState(HDLSequencer s){
 		HDLSequencer.SequencerState state = s.addSequencerState("RECV_WAIT");
-		in.ack.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
+		in.ack.getSignal().setAssign(state, newExpr(HDLOp.NOT, in.en.getSignal()));
 		in.ack.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW); // otherwise
-		recv_count.setAssign(state, ONE);
-		local_waddr.setAssign(state, ZERO);
+		recv_count.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), ONE, ZERO));
+		local_waddr.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), ONE, ZERO));
 		local_we.setAssign(state, in.en.getSignal());
+		local_din.setAssign(state, in.data.getSignal());
 		return state;
 	}
 
 	private HDLSequencer.SequencerState recvDataState(HDLSequencer s){
 		HDLSequencer.SequencerState state = s.addSequencerState("RECV_DATA");
-		local_waddr.setAssign(state, recv_count);
-		recv_count.setAssign(state, newExpr(HDLOp.ADD, recv_count, ONE));
+		local_waddr.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), newExpr(HDLOp.ADD, recv_count, ONE), local_waddr));
+		recv_count.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), newExpr(HDLOp.ADD, recv_count, ONE), recv_count));
 		local_we.setAssign(state, in.en.getSignal());
+		local_din.setAssign(state, in.data.getSignal());
 		return state;
 	}
 	
@@ -93,11 +97,16 @@ public class UPLPort extends HDLModule{
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState operationState(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("OPERATION");
-		pReady.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
+	private HDLSequencer.SequencerState operationState0(HDLSequencer s){
+		HDLSequencer.SequencerState s0 = s.addSequencerState("OPERATION0");
+		pReady.getSignal().setAssign(s0, HDLPreDefinedConstant.HIGH);
 		pReady.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW); // others
-		return state;
+		return s0;
+	}
+	
+	private HDLSequencer.SequencerState operationState(HDLSequencer s){
+		HDLSequencer.SequencerState s1 = s.addSequencerState("OPERATION");
+		return s1;
 	}
 	
 	private HDLSequencer.SequencerState operation;
@@ -105,16 +114,20 @@ public class UPLPort extends HDLModule{
 		HDLSequencer s = newSequencer("main");
 		HDLSequencer.SequencerState recv_wait = recvWaitState(s);
 		HDLSequencer.SequencerState recv_data = recvDataState(s);
+		HDLSequencer.SequencerState operation0 = operationState0(s);
 		operation = operationState(s);
 		HDLSequencer.SequencerState send_wait = sendWaitState(s);
 		HDLSequencer.SequencerState mem_wait = memWaitState(s);
 		HDLSequencer.SequencerState send_data = sendDataState(s);
 		
-		HDLExpr opReady = newExpr(HDLOp.EQ, pOpDone.getSignal(), HDLPreDefinedConstant.LOW);
+		HDLExpr opReady = newExpr(HDLOp.AND,
+				newExpr(HDLOp.EQ, pOpStart.getSignal(), HDLPreDefinedConstant.LOW),
+				newExpr(HDLOp.EQ, pOpDone.getSignal(), HDLPreDefinedConstant.LOW));
 		s.getIdleState().addStateTransit(opReady, recv_wait);
 
 		recv_wait.addStateTransit(newExpr(HDLOp.EQ, in.en.getSignal(), HDLPreDefinedConstant.HIGH), recv_data);
-		recv_data.addStateTransit(newExpr(HDLOp.EQ, in.en.getSignal(), HDLPreDefinedConstant.LOW), operation);
+		recv_data.addStateTransit(newExpr(HDLOp.EQ, in.en.getSignal(), HDLPreDefinedConstant.LOW), operation0);
+		operation0.addStateTransit(newExpr(HDLOp.EQ, pOpStart.getSignal(), HDLPreDefinedConstant.HIGH), operation);
 		
 		HDLExpr hasData = newExpr(HDLOp.GT, pSendLength.getSignal(), ZERO);
 		HDLExpr noData = newExpr(HDLOp.NOT, hasData);
