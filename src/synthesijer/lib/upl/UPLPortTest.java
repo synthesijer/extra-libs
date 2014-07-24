@@ -23,7 +23,12 @@ public class UPLPortTest {
 		port.send_length = port.recv_length;
 				
 		int len = port.data[DATA_LENGTH];
-		for(int i = 0; i < (len >> 2); i++){
+		if((len & 0x3) == 0){
+			len = len >> 2;
+		}else{
+			len = (len >> 2) + 1;
+		}
+		for(int i = 0; i < len; i++){
 			int v  = port.data[i+DATA_OFFSET];
 			int r = 0;
 			r += (toLow((v >> 0) & 0x000000FF)) << 0;
