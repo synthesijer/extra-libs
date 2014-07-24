@@ -57,7 +57,8 @@ public class UPLPort extends HDLModule{
 		in.ack.getSignal().setAssign(state, newExpr(HDLOp.NOT, in.en.getSignal()));
 		in.ack.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW); // otherwise
 		recv_count.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), ONE, ZERO));
-		local_waddr.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), ONE, ZERO));
+		//local_waddr.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), ONE, ZERO));
+		local_waddr.setAssign(state, ZERO);
 		local_we.setAssign(state, in.en.getSignal());
 		local_din.setAssign(state, in.data.getSignal());
 		return state;
@@ -65,7 +66,7 @@ public class UPLPort extends HDLModule{
 
 	private HDLSequencer.SequencerState recvDataState(HDLSequencer s){
 		HDLSequencer.SequencerState state = s.addSequencerState("RECV_DATA");
-		local_waddr.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), newExpr(HDLOp.ADD, recv_count, ONE), local_waddr));
+		local_waddr.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), newExpr(HDLOp.ADD, local_waddr, ONE), local_waddr));
 		recv_count.setAssign(state, newExpr(HDLOp.IF, in.en.getSignal(), newExpr(HDLOp.ADD, recv_count, ONE), recv_count));
 		local_we.setAssign(state, in.en.getSignal());
 		local_din.setAssign(state, in.data.getSignal());
@@ -177,7 +178,10 @@ public class UPLPort extends HDLModule{
 	
 	public static void main(String... args){
 		UPLPort m = new UPLPort();
-		HDLInstance ram = m.newModuleInstance(new BlockRAM(32, 10, 1024), "U_RAM");
+		BlockRAM bram = new BlockRAM(32, 10, 1024);
+		HDLInstance ram = m.newModuleInstance(bram, "U_RAM");
+		ram.getSignalForPort(bram.getSysClkName()).setAssign(null, m.getSysClk().getSignal());
+		ram.getSignalForPort(bram.getSysResetName()).setAssign(null, m.getSysReset().getSignal());
 		
 		m.genLocalSignals();
 		HDLSequencer s = m.genSequencer();
