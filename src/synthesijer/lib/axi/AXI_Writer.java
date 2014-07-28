@@ -57,15 +57,17 @@ public class AXI_Writer extends HDLModule{
 		
 		// INIT: check whether FIFO is ready or not 
 		HDLSequencer.SequencerState write0 = s.addSequencerState("write0");
+		System.out.println(newExpr(HDLOp.EQ, fifo.length.getSignal(), HDLPreDefinedConstant.INTEGER_ZERO));
+		System.out.println(fifo.length.getSignal());
 		HDLExpr fifo_ready =
 				newExpr(HDLOp.OR,
 						newExpr(HDLOp.GEQ, fifo.length.getSignal(), len.getSignal()),
 						newExpr(HDLOp.AND,
 								newExpr(HDLOp.EQ, fifo.empty.getSignal(), HDLPreDefinedConstant.LOW),
-								newExpr(HDLOp.EQ, fifo.length.getSignal(), newExpr(HDLOp.ID, HDLPreDefinedConstant.VECTOR_ZERO))));
+								newExpr(HDLOp.EQ, fifo.length.getSignal(), HDLPreDefinedConstant.INTEGER_ZERO)));
 		init.addStateTransit(fifo_ready, write0); // init -> write0
 		port.awaddr.getSignal().setAssign(init, addr.getSignal());
-		port.awvalid.getSignal().setAssign(init, HDLPreDefinedConstant.HIGH);
+		port.awvalid.getSignal().setAssign(init, newExpr(HDLOp.IF, fifo_ready, HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
 		port.awlen.getSignal().setAssign(init, len.getSignal());
 		HDLSignal write_counter = newSignal("write_counter", HDLPrimitiveType.genSignedType(32));
 		write_counter.setAssign(init, newExpr(HDLOp.PADDINGHEAD_ZERO, port.awlen.getSignal(), new HDLValue("24", HDLPrimitiveType.genIntegerType())));
@@ -98,7 +100,7 @@ public class AXI_Writer extends HDLModule{
 		// WRITE_NEXT
 		fifo.re.getSignal().setAssign(write0, HDLPreDefinedConstant.LOW);
 		HDLExpr wready = newExpr(HDLOp.EQ, port.wready.getSignal(), HDLPreDefinedConstant.HIGH);
-		HDLExpr write_done = newExpr(HDLOp.EQ, write_counter, newExpr(HDLOp.ID, HDLPreDefinedConstant.VECTOR_ZERO));
+		HDLExpr write_done = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ZERO);
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, write_done), idle);
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, newExpr(HDLOp.NOT, write_done)), write);
 		port.wlast.getSignal().setAssign(write_next, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
