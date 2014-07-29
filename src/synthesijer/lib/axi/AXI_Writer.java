@@ -18,8 +18,14 @@ public class AXI_Writer extends HDLModule{
 	private FifoPort fifo;
 	private AxiMasterWritePort port;
 	private HDLPort req, busy;
-	
+		
 	private HDLPort addr, len;
+	
+	private HDLSignal write_counter = newSignal("write_counter", HDLPrimitiveType.genSignedType(32));
+	
+	private HDLExpr fifo_ready, wready, write_done, awready_high;
+	
+	private HDLPort debug;
 
 	public AXI_Writer(){
 		super("axi_writer", "clk", "reset");
@@ -35,75 +41,109 @@ public class AXI_Writer extends HDLModule{
 		addr = Utils.genInputPort(this, "addr", 32);
 		len = Utils.genInputPort(this, "len", 8);
 		
+		debug = Utils.genOutputPort(this, "debug", 8);
+		
 		fifo.rclk.getSignal().setAssign(null, getSysClk().getSignal());
 		
+		fifo_ready =
+				newExpr(HDLOp.OR,
+						newExpr(HDLOp.GEQ, fifo.length.getSignal(), len.getSignal()),
+						newExpr(HDLOp.AND,
+								newExpr(HDLOp.EQ, fifo.empty.getSignal(), HDLPreDefinedConstant.LOW),
+								newExpr(HDLOp.EQ, fifo.length.getSignal(), HDLPreDefinedConstant.INTEGER_ZERO)));
+		wready = newExpr(HDLOp.EQ, port.wready.getSignal(), HDLPreDefinedConstant.HIGH);
+		write_done = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ZERO);
+		awready_high = newExpr(HDLOp.EQ, port.awready.getSignal(), HDLPreDefinedConstant.HIGH);
+
 		setDefaultSetting(port);
 		
 		genStateMachine(newSequencer("main"));
 		
+	}
+
+	private HDLSequencer.SequencerState genInit(HDLSequencer s){
+		HDLSequencer.SequencerState state = s.addSequencerState("init");
+		debug.getSignal().setAssign(state, new HDLValue("1", HDLPrimitiveType.genVectorType(8)));
+		port.awaddr.getSignal().setAssign(state, addr.getSignal());
+		port.awvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, fifo_ready, HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
+		port.awlen.getSignal().setAssign(state, len.getSignal());
+		write_counter.setAssign(state, newExpr(HDLOp.PADDINGHEAD_ZERO, len.getSignal(), new HDLValue("24", HDLPrimitiveType.genIntegerType())));
+		return state;
+	}
+
+	private HDLSequencer.SequencerState genWrite0(HDLSequencer s){
+		HDLSequencer.SequencerState state = s.addSequencerState("write0");
+		debug.getSignal().setAssign(state, new HDLValue("2", HDLPrimitiveType.genVectorType(8)));
+		port.awvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, awready_high, HDLPreDefinedConstant.LOW, HDLPreDefinedConstant.HIGH));
+		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
+		return state;
+	}
+
+	private HDLSequencer.SequencerState genWritePre(HDLSequencer s){
+		HDLSequencer.SequencerState state = s.addSequencerState("write_pre");		
+		debug.getSignal().setAssign(state, new HDLValue("3", HDLPrimitiveType.genVectorType(8)));
+		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.LOW);
+		return state;
+	}
+	
+	private HDLSequencer.SequencerState genWrite(HDLSequencer s){
+		HDLSequencer.SequencerState state = s.addSequencerState("write");
+		debug.getSignal().setAssign(state, new HDLValue("4", HDLPrimitiveType.genVectorType(8)));
+		port.wdata.getSignal().setAssign(state, fifo.din.getSignal());
+		port.wvalid.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
+		write_counter.setAssign(state, newExpr(HDLOp.SUB, write_counter, HDLPreDefinedConstant.INTEGER_ONE));
+		HDLExpr last_word = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ONE);
+		port.wlast.getSignal().setAssign(state, last_word); 
+		fifo.re.getSignal().setAssign(state, newExpr(HDLOp.IF, last_word, 
+				                                         HDLPreDefinedConstant.LOW, // last word
+				                                         HDLPreDefinedConstant.HIGH // for next
+				                          )); 
+		return state;
+	}
+
+	private HDLSequencer.SequencerState genWriteNext(HDLSequencer s){
+		HDLSequencer.SequencerState state = s.addSequencerState("write_next");
+		debug.getSignal().setAssign(state, new HDLValue("5", HDLPrimitiveType.genVectorType(8)));
+		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.LOW);
+		port.wlast.getSignal().setAssign(state, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
+		port.wvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
+		return state;
 	}
 	
 	private void genStateMachine(HDLSequencer s){
 		HDLSequencer.SequencerState idle = s.getIdleState();
 		// after reset
 		port.bready.getSignal().setAssign(idle, HDLPreDefinedConstant.HIGH);
+		debug.getSignal().setAssign(idle, new HDLValue("0", HDLPrimitiveType.genVectorType(8)));
 		
-		// IDLE: wait for request
-		HDLSequencer.SequencerState init = s.addSequencerState("init");
+		HDLSequencer.SequencerState init = genInit(s);
+		HDLSequencer.SequencerState write0 = genWrite0(s);
+		HDLSequencer.SequencerState write_pre = genWritePre(s);
+		HDLSequencer.SequencerState write = genWrite(s);
+		HDLSequencer.SequencerState write_next = genWriteNext(s);
+		
+		// idle -> init when fifo is ready
 		HDLExpr req_assert = newExpr(HDLOp.EQ, req.getSignal(), HDLPreDefinedConstant.HIGH);
-		idle.addStateTransit(req_assert, init); // idle -> init
 		busy.getSignal().setAssign(idle, req_assert);
+		idle.addStateTransit(req_assert, init);
+		
+		// init -> write0
 		fifo.we.getSignal().setAssign(idle, HDLPreDefinedConstant.LOW);
+		init.addStateTransit(fifo_ready, write0);
 		
-		// INIT: check whether FIFO is ready or not 
-		HDLSequencer.SequencerState write0 = s.addSequencerState("write0");
-		System.out.println(newExpr(HDLOp.EQ, fifo.length.getSignal(), HDLPreDefinedConstant.INTEGER_ZERO));
-		System.out.println(fifo.length.getSignal());
-		HDLExpr fifo_ready =
-				newExpr(HDLOp.OR,
-						newExpr(HDLOp.GEQ, fifo.length.getSignal(), len.getSignal()),
-						newExpr(HDLOp.AND,
-								newExpr(HDLOp.EQ, fifo.empty.getSignal(), HDLPreDefinedConstant.LOW),
-								newExpr(HDLOp.EQ, fifo.length.getSignal(), HDLPreDefinedConstant.INTEGER_ZERO)));
-		init.addStateTransit(fifo_ready, write0); // init -> write0
-		port.awaddr.getSignal().setAssign(init, addr.getSignal());
-		port.awvalid.getSignal().setAssign(init, newExpr(HDLOp.IF, fifo_ready, HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
-		port.awlen.getSignal().setAssign(init, len.getSignal());
-		HDLSignal write_counter = newSignal("write_counter", HDLPrimitiveType.genSignedType(32));
-		write_counter.setAssign(init, newExpr(HDLOp.PADDINGHEAD_ZERO, port.awlen.getSignal(), new HDLValue("24", HDLPrimitiveType.genIntegerType())));
+		// write0 -> write_pre
+		write0.addStateTransit(awready_high, write_pre);
+
+		// write_pre -> write
+		write_pre.addStateTransit(write);
 		
-		// WRITE0
-		HDLExpr awready_high = newExpr(HDLOp.EQ, port.awready.getSignal(), HDLPreDefinedConstant.HIGH);
-		port.awvalid.getSignal().setAssign(write0, newExpr(HDLOp.IF, awready_high, HDLPreDefinedConstant.LOW, HDLPreDefinedConstant.HIGH));
-		HDLSequencer.SequencerState write_pre = s.addSequencerState("write_pre");
-		write0.addStateTransit(awready_high, write_pre); // write0 -> write_pre
-		fifo.re.getSignal().setAssign(write0, HDLPreDefinedConstant.HIGH);
+		// write -> write_next
+		write.addStateTransit(write_next);
 		
-		// WRITE_PRE
-		HDLSequencer.SequencerState write = s.addSequencerState("write");
-		write_pre.addStateTransit(write); // write_pre -> write
-		fifo.re.getSignal().setAssign(write_pre, HDLPreDefinedConstant.LOW);
-		
-		// WRITE
-		port.wdata.getSignal().setAssign(write, fifo.din.getSignal()); // port.wdata <- fifo.wdata
-		port.wvalid.getSignal().setAssign(write, HDLPreDefinedConstant.HIGH);
-		write_counter.setAssign(write, newExpr(HDLOp.SUB, write_counter, HDLPreDefinedConstant.INTEGER_ONE));
-		HDLSequencer.SequencerState write_next = s.addSequencerState("write_next");
-		write.addStateTransit(write_next); // write -> write_next
-		HDLExpr last_word = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ONE);
-		port.wlast.getSignal().setAssign(write0, last_word); 
-		fifo.re.getSignal().setAssign(write0, 
-				newExpr(HDLOp.IF,	last_word, // last word
-						HDLPreDefinedConstant.LOW,
-						HDLPreDefinedConstant.HIGH)); // for next
-		
-		// WRITE_NEXT
-		fifo.re.getSignal().setAssign(write0, HDLPreDefinedConstant.LOW);
-		HDLExpr wready = newExpr(HDLOp.EQ, port.wready.getSignal(), HDLPreDefinedConstant.HIGH);
-		HDLExpr write_done = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ZERO);
+		// write_next -> idle, write
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, write_done), idle);
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, newExpr(HDLOp.NOT, write_done)), write);
-		port.wlast.getSignal().setAssign(write_next, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
+		
 	}
 
 	private void setDefaultSetting(AxiMasterWritePort port){
