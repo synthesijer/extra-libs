@@ -66,7 +66,7 @@ public class AXI_Writer extends HDLModule{
 		debug.getSignal().setAssign(state, new HDLValue("1", HDLPrimitiveType.genVectorType(8)));
 		port.awaddr.getSignal().setAssign(state, addr.getSignal());
 		port.awvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, fifo_ready, HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
-		port.awlen.getSignal().setAssign(state, len.getSignal());
+		port.awlen.getSignal().setAssign(state, newExpr(HDLOp.SUB, len.getSignal(), HDLPreDefinedConstant.INTEGER_ONE));
 		write_counter.setAssign(state, newExpr(HDLOp.PADDINGHEAD_ZERO, len.getSignal(), new HDLValue("24", HDLPrimitiveType.genIntegerType())));
 		return state;
 	}
@@ -146,9 +146,10 @@ public class AXI_Writer extends HDLModule{
 		
 	}
 
+	// for 256-bit width
 	private void setDefaultSetting(AxiMasterWritePort port){
-		// Bytes in transfer: 8
-		port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b011), HDLPrimitiveType.genVectorType(3)));
+		// Bytes in transfer: 32
+		port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3)));
 		// Burst type encoding: INCR
 		port.awburst.getSignal().setAssign(null, new HDLValue(String.valueOf(0b01), HDLPrimitiveType.genVectorType(2)));
 		// Normal Non-cache-able Buffer
