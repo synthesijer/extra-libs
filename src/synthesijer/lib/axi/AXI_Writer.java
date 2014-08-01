@@ -106,7 +106,7 @@ public class AXI_Writer extends HDLModule{
 		debug.getSignal().setAssign(state, new HDLValue("5", HDLPrimitiveType.genVectorType(8)));
 		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.LOW);
 		port.wlast.getSignal().setAssign(state, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
-		port.wvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
+		port.wvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wvalid.getSignal()));
 		return state;
 	}
 	
