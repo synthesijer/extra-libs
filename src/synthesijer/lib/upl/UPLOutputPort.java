@@ -85,8 +85,7 @@ public class UPLOutputPort extends HDLModule{
 		HDLSequencer.SequencerState send_data = sendDataState(s);
 		
 		// idle -> operation, when kick is low 
-		HDLExpr opReady = newExpr(HDLOp.AND,
-				newExpr(HDLOp.EQ, pKick.getSignal(), HDLPreDefinedConstant.LOW));
+		HDLExpr opReady = newExpr(HDLOp.EQ, pKick.getSignal(), HDLPreDefinedConstant.LOW);
 		s.getIdleState().addStateTransit(opReady, operation);
 
 		HDLExpr hasData = newExpr(HDLOp.GT, pSendLength.getSignal(), ZERO);
