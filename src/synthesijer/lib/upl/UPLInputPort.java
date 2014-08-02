@@ -31,7 +31,7 @@ public class UPLInputPort extends HDLModule{
 	private HDLValue ZERO = new HDLValue("0", HDLPrimitiveType.genSignedType(32));
 	private HDLValue ONE = new HDLValue("1", HDLPrimitiveType.genSignedType(32));
 	
-	public UPLInputPort(String... args){
+	public UPLInputPort(){
 		super("upl_input_port", "UPLGlobalClk", "UPLReset");
 
 		pReady = newPort("ready", HDLPort.DIR.OUT, HDLPrimitiveType.genBitType());
