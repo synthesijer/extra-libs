@@ -10,6 +10,7 @@ import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.expr.HDLValue;
+import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.FifoPort;
 import synthesijer.utils.Utils;
 
@@ -61,8 +62,8 @@ public class AXI_Writer extends HDLModule{
 		
 	}
 
-	private HDLSequencer.SequencerState genInit(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("init");
+	private SequencerState genInit(HDLSequencer s){
+		SequencerState state = s.addSequencerState("init");
 		debug.getSignal().setAssign(state, new HDLValue("1", HDLPrimitiveType.genVectorType(8)));
 		port.awaddr.getSignal().setAssign(state, addr.getSignal());
 		port.awvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, fifo_ready, HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
@@ -71,23 +72,23 @@ public class AXI_Writer extends HDLModule{
 		return state;
 	}
 
-	private HDLSequencer.SequencerState genWrite0(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("write0");
+	private SequencerState genWrite0(HDLSequencer s){
+		SequencerState state = s.addSequencerState("write0");
 		debug.getSignal().setAssign(state, new HDLValue("2", HDLPrimitiveType.genVectorType(8)));
 		port.awvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, awready_high, HDLPreDefinedConstant.LOW, HDLPreDefinedConstant.HIGH));
 		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
 		return state;
 	}
 
-	private HDLSequencer.SequencerState genWritePre(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("write_pre");		
+	private SequencerState genWritePre(HDLSequencer s){
+		SequencerState state = s.addSequencerState("write_pre");		
 		debug.getSignal().setAssign(state, new HDLValue("3", HDLPrimitiveType.genVectorType(8)));
 		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.LOW);
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState genWrite(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("write");
+	private SequencerState genWrite(HDLSequencer s){
+		SequencerState state = s.addSequencerState("write");
 		debug.getSignal().setAssign(state, new HDLValue("4", HDLPrimitiveType.genVectorType(8)));
 		port.wdata.getSignal().setAssign(state, fifo.din.getSignal());
 		port.wvalid.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
@@ -101,8 +102,8 @@ public class AXI_Writer extends HDLModule{
 		return state;
 	}
 
-	private HDLSequencer.SequencerState genWriteNext(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("write_next");
+	private SequencerState genWriteNext(HDLSequencer s){
+		SequencerState state = s.addSequencerState("write_next");
 		debug.getSignal().setAssign(state, new HDLValue("5", HDLPrimitiveType.genVectorType(8)));
 		fifo.re.getSignal().setAssign(state, HDLPreDefinedConstant.LOW);
 		port.wlast.getSignal().setAssign(state, newExpr(HDLOp.IF, wready, HDLPreDefinedConstant.LOW, port.wlast.getSignal()));
@@ -111,16 +112,16 @@ public class AXI_Writer extends HDLModule{
 	}
 	
 	private void genStateMachine(HDLSequencer s){
-		HDLSequencer.SequencerState idle = s.getIdleState();
+		SequencerState idle = s.getIdleState();
 		// after reset
 		port.bready.getSignal().setAssign(idle, HDLPreDefinedConstant.HIGH);
 		debug.getSignal().setAssign(idle, new HDLValue("0", HDLPrimitiveType.genVectorType(8)));
 		
-		HDLSequencer.SequencerState init = genInit(s);
-		HDLSequencer.SequencerState write0 = genWrite0(s);
-		HDLSequencer.SequencerState write_pre = genWritePre(s);
-		HDLSequencer.SequencerState write = genWrite(s);
-		HDLSequencer.SequencerState write_next = genWriteNext(s);
+		SequencerState init = genInit(s);
+		SequencerState write0 = genWrite0(s);
+		SequencerState write_pre = genWritePre(s);
+		SequencerState write = genWrite(s);
+		SequencerState write_next = genWriteNext(s);
 		
 		// idle -> init when fifo is ready
 		HDLExpr req_assert = newExpr(HDLOp.EQ, req.getSignal(), HDLPreDefinedConstant.HIGH);

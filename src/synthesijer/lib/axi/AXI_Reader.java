@@ -10,6 +10,7 @@ import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.expr.HDLValue;
+import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.FifoPort;
 import synthesijer.utils.Utils;
 
@@ -49,8 +50,8 @@ public class AXI_Reader extends HDLModule{
 	}
 	
 	HDLSignal read_length;
-	private HDLSequencer.SequencerState genInit(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("init");
+	private SequencerState genInit(HDLSequencer s){
+		SequencerState state = s.addSequencerState("init");
 		// INIT: check whether FIFO is full or not 
 		port.araddr.getSignal().setAssign(state, addr.getSignal());
 		port.arvalid.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
@@ -61,16 +62,16 @@ public class AXI_Reader extends HDLModule{
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState genRead0(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("read0");
+	private SequencerState genRead0(HDLSequencer s){
+		SequencerState state = s.addSequencerState("read0");
 		port.arvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, arready_high, HDLPreDefinedConstant.LOW, HDLPreDefinedConstant.HIGH));
 		fifo.dout.getSignal().setAssign(state, port.rdata.getSignal()); // fifo.dout <- port.rdata
 		fifo.we.getSignal().setAssign(state, rvalid_high);
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState genRead(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("read");
+	private SequencerState genRead(HDLSequencer s){
+		SequencerState state = s.addSequencerState("read");
 		fifo.dout.getSignal().setAssign(state, port.rdata.getSignal()); // fifo.dout <- port.rdata
 		fifo.we.getSignal().setAssign(state, rvalid_high);
 		read_length.setAssign(state,
@@ -81,7 +82,7 @@ public class AXI_Reader extends HDLModule{
 	}
 	
 	private void genStateMachine(HDLSequencer s){
-		HDLSequencer.SequencerState idle = s.getIdleState();
+		SequencerState idle = s.getIdleState();
 		// after reset
 		port.rready.getSignal().setAssign(idle, HDLPreDefinedConstant.HIGH);
 
@@ -90,9 +91,9 @@ public class AXI_Reader extends HDLModule{
 		busy.getSignal().setAssign(idle, req_assert);
 		fifo.we.getSignal().setAssign(idle, HDLPreDefinedConstant.LOW);
 		
-		HDLSequencer.SequencerState init = genInit(s);
-		HDLSequencer.SequencerState read0 = genRead0(s);
-		HDLSequencer.SequencerState read = genRead(s);
+		SequencerState init = genInit(s);
+		SequencerState read0 = genRead0(s);
+		SequencerState read = genRead(s);
 		
 		// idle -> init
 		idle.addStateTransit(req_assert, init);

@@ -11,6 +11,7 @@ import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.expr.HDLValue;
+import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.lib.BlockRAM;
 
 public class UPLOutputPort extends HDLModule{
@@ -46,8 +47,8 @@ public class UPLOutputPort extends HDLModule{
 		
 	}
 	
-	private HDLSequencer.SequencerState sendWaitState(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("SEND_WAIT");
+	private SequencerState sendWaitState(HDLSequencer s){
+		SequencerState state = s.addSequencerState("SEND_WAIT");
 		send_count.setAssign(state, newExpr(HDLOp.ID, pSendLength.getSignal()));
 		out.req.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
 		out.req.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW); // otherwise
@@ -55,14 +56,14 @@ public class UPLOutputPort extends HDLModule{
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState memWaitState(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("MEM_WAIT");
+	private SequencerState memWaitState(HDLSequencer s){
+		SequencerState state = s.addSequencerState("MEM_WAIT");
 		local_raddr.setAssign(state, newExpr(HDLOp.ADD, local_raddr, ONE));
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState sendDataState(HDLSequencer s){
-		HDLSequencer.SequencerState state = s.addSequencerState("SEND_DATA");
+	private SequencerState sendDataState(HDLSequencer s){
+		SequencerState state = s.addSequencerState("SEND_DATA");
 		send_count.setAssign(state, newExpr(HDLOp.SUB, send_count, ONE));
 		out.en.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
 		out.en.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW); // otherwise
@@ -71,18 +72,18 @@ public class UPLOutputPort extends HDLModule{
 		return state;
 	}
 	
-	private HDLSequencer.SequencerState operationState(HDLSequencer s){
-		HDLSequencer.SequencerState s1 = s.addSequencerState("OPERATION");
+	private SequencerState operationState(HDLSequencer s){
+		SequencerState s1 = s.addSequencerState("OPERATION");
 		return s1;
 	}
 	
-	private HDLSequencer.SequencerState operation;
+	private SequencerState operation;
 	private HDLSequencer genSequencer(){
 		HDLSequencer s = newSequencer("main");
 		operation = operationState(s);
-		HDLSequencer.SequencerState send_wait = sendWaitState(s);
-		HDLSequencer.SequencerState mem_wait = memWaitState(s);
-		HDLSequencer.SequencerState send_data = sendDataState(s);
+		SequencerState send_wait = sendWaitState(s);
+		SequencerState mem_wait = memWaitState(s);
+		SequencerState send_data = sendDataState(s);
 		
 		// idle -> operation, when kick is low 
 		HDLExpr opReady = newExpr(HDLOp.EQ, pKick.getSignal(), HDLPreDefinedConstant.LOW);
