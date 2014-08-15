@@ -126,6 +126,7 @@ public class AXI_Reader extends HDLModule{
 	
 	public static void main(String... args){
 		AXI_Reader reader = new AXI_Reader();
+		HDLUtils.genHDLSequencerDump(reader);
 		HDLUtils.generate(reader, HDLUtils.VHDL);
 		HDLUtils.generate(reader, HDLUtils.Verilog);
 	}

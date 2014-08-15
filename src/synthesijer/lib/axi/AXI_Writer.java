@@ -163,9 +163,11 @@ public class AXI_Writer extends HDLModule{
 	}
 	
 	public static void main(String... args){
-		AXI_Writer reader = new AXI_Writer();
-		HDLUtils.generate(reader, HDLUtils.VHDL);
-		HDLUtils.generate(reader, HDLUtils.Verilog);
+		AXI_Writer writer = new AXI_Writer();
+		HDLUtils.genHDLSequencerDump(writer);
+		HDLUtils.genResourceUsageTable(writer);
+		HDLUtils.generate(writer, HDLUtils.VHDL);
+		HDLUtils.generate(writer, HDLUtils.Verilog);
 	}
 
 }
