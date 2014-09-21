@@ -23,10 +23,12 @@ public class AXI_Reader extends HDLModule{
 	private HDLPort addr, len;
 
 	private HDLExpr arready_high, rvalid_high;
+	
+	private final int width;
 
-	public AXI_Reader(){
+	public AXI_Reader(int width){
 		super("axi_reader", "clk", "reset");
-		int width = 256;
+		this.width = width;
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
 		
 		fifo = new FifoPort(this, "fifo_", width);
@@ -67,6 +69,10 @@ public class AXI_Reader extends HDLModule{
 		port.arvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, arready_high, HDLPreDefinedConstant.LOW, HDLPreDefinedConstant.HIGH));
 		fifo.dout.getSignal().setAssign(state, port.rdata.getSignal()); // fifo.dout <- port.rdata
 		fifo.we.getSignal().setAssign(state, rvalid_high);
+		read_length.setAssign(state,
+				newExpr(HDLOp.IF, rvalid_high,
+						newExpr(HDLOp.SUB, read_length, HDLPreDefinedConstant.INTEGER_ONE),
+						read_length));
 		return state;
 	}
 	
@@ -115,7 +121,17 @@ public class AXI_Reader extends HDLModule{
 	// for 256-bit width
 	private void setDefaultSetting(AxiMasterReadPort port){
 		// Bytes in transfer: 32
-		port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3)));
+		switch(width){
+		case   8: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
+		case  16: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b001), HDLPrimitiveType.genVectorType(3))); break;
+		case  32: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b010), HDLPrimitiveType.genVectorType(3))); break;
+		case  64: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b011), HDLPrimitiveType.genVectorType(3))); break;
+		case 128: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b100), HDLPrimitiveType.genVectorType(3))); break;
+		case 256: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3))); break;
+		case 512: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b110), HDLPrimitiveType.genVectorType(3))); break;
+		default: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
+		}
+
 		// Burst type encoding: INCR
 		port.arburst.getSignal().setAssign(null, new HDLValue(String.valueOf(0b01), HDLPrimitiveType.genVectorType(2)));
 		// Normal Non-cache-able Buffer
@@ -125,7 +141,7 @@ public class AXI_Reader extends HDLModule{
 	}
 	
 	public static void main(String... args){
-		AXI_Reader reader = new AXI_Reader();
+		AXI_Reader reader = new AXI_Reader(64);
 		HDLUtils.genHDLSequencerDump(reader);
 		HDLUtils.generate(reader, HDLUtils.VHDL);
 		HDLUtils.generate(reader, HDLUtils.Verilog);
