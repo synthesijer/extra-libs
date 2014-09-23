@@ -27,10 +27,14 @@ public class AXI_Writer extends HDLModule{
 	private HDLExpr fifo_ready, wready, write_done, awready_high;
 	
 	private HDLPort debug;
+	
+	private final int width;
 
-	public AXI_Writer(){
+	public AXI_Writer(int width){
 		super("axi_writer", "clk", "reset");
-		int width = 256;
+		
+		this.width = width;
+
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
 		
 		fifo = new FifoPort(this, "fifo_", width);
@@ -150,20 +154,40 @@ public class AXI_Writer extends HDLModule{
 	// for 256-bit width
 	private void setDefaultSetting(AxiMasterWritePort port){
 		// Bytes in transfer: 32
-		port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3)));
+		switch(width){
+		case   8: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
+		case  16: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b001), HDLPrimitiveType.genVectorType(3))); break;
+		case  32: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b010), HDLPrimitiveType.genVectorType(3))); break;
+		case  64: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b011), HDLPrimitiveType.genVectorType(3))); break;
+		case 128: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b100), HDLPrimitiveType.genVectorType(3))); break;
+		case 256: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3))); break;
+		case 512: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b110), HDLPrimitiveType.genVectorType(3))); break;
+		default:  port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
+		}
+
 		// Burst type encoding: INCR
 		port.awburst.getSignal().setAssign(null, new HDLValue(String.valueOf(0b01), HDLPrimitiveType.genVectorType(2)));
 		// Normal Non-cache-able Buffer
 		port.awcache.getSignal().setAssign(null, new HDLValue(String.valueOf(0b0011), HDLPrimitiveType.genVectorType(4)));
 		// protocol
 		port.awprot.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3)));
+		
 		// strobe
-		//port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11111111), HDLPrimitiveType.genVectorType(8)));
-		port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFFFFFF), HDLPrimitiveType.genVectorType(32)));
+		switch(width){
+		case   8: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b1), HDLPrimitiveType.genVectorType(1))); break;
+		case  16: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11), HDLPrimitiveType.genVectorType(2))); break;
+		case  32: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xF), HDLPrimitiveType.genVectorType(4))); break;
+		case  64: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFF), HDLPrimitiveType.genVectorType(8))); break;
+		case 128: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFF), HDLPrimitiveType.genVectorType(16))); break;
+		case 256: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFFFFFF), HDLPrimitiveType.genVectorType(32))); break;
+		case 512: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFFFFFFFFFFFFFFL), HDLPrimitiveType.genVectorType(64))); break;
+		default:  port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11111111), HDLPrimitiveType.genVectorType(8))); break;
+		}
+
 	}
 	
 	public static void main(String... args){
-		AXI_Writer writer = new AXI_Writer();
+		AXI_Writer writer = new AXI_Writer(64);
 		HDLUtils.genHDLSequencerDump(writer);
 		HDLUtils.genResourceUsageTable(writer);
 		HDLUtils.generate(writer, HDLUtils.VHDL);
