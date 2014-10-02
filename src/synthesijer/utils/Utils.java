@@ -6,6 +6,7 @@ import synthesijer.hdl.HDLModule;
 import synthesijer.hdl.HDLPort;
 import synthesijer.hdl.HDLPort.OPTION;
 import synthesijer.hdl.HDLPrimitiveType;
+import synthesijer.hdl.expr.HDLValue;
 
 public class Utils {
 
@@ -39,6 +40,10 @@ public class Utils {
 
 	public static HDLPort genInputPort(HDLModule m, String name, int width, EnumSet<OPTION> opt){
 		return m.newPort(name, HDLPort.DIR.IN, HDLPrimitiveType.genVectorType(width), opt);
+	}
+	
+	public static HDLValue value(int value, int width){
+		return new HDLValue(String.valueOf(value), HDLPrimitiveType.genSignedType(width));
 	}
 
 }
