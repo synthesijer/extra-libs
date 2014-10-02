@@ -31,7 +31,7 @@ public class AXI_Writer extends HDLModule{
 	private final int width;
 
 	public AXI_Writer(int width){
-		super("axi_writer", "clk", "reset");
+		super("axi_writer_" + width, "clk", "reset");
 		
 		this.width = width;
 
@@ -151,9 +151,7 @@ public class AXI_Writer extends HDLModule{
 		
 	}
 
-	// for 256-bit width
 	private void setDefaultSetting(AxiMasterWritePort port){
-		// Bytes in transfer: 32
 		switch(width){
 		case   8: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
 		case  16: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b001), HDLPrimitiveType.genVectorType(3))); break;
@@ -187,11 +185,14 @@ public class AXI_Writer extends HDLModule{
 	}
 	
 	public static void main(String... args){
-		AXI_Writer writer = new AXI_Writer(64);
-		HDLUtils.genHDLSequencerDump(writer);
-		HDLUtils.genResourceUsageTable(writer);
-		HDLUtils.generate(writer, HDLUtils.VHDL);
-		HDLUtils.generate(writer, HDLUtils.Verilog);
+		int [] width = new int[]{8, 16, 32, 64, 128, 256, 512};
+		for(int w: width){
+			AXI_Writer writer = new AXI_Writer(w);
+			HDLUtils.genHDLSequencerDump(writer);
+			HDLUtils.genResourceUsageTable(writer);
+			HDLUtils.generate(writer, HDLUtils.VHDL);
+			HDLUtils.generate(writer, HDLUtils.Verilog);
+		}
 	}
 
 }

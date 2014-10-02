@@ -27,7 +27,7 @@ public class AXI_Reader extends HDLModule{
 	private final int width;
 
 	public AXI_Reader(int width){
-		super("axi_reader", "clk", "reset");
+		super("axi_reader_" + width, "clk", "reset");
 		this.width = width;
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
 		
@@ -118,9 +118,7 @@ public class AXI_Reader extends HDLModule{
 		read.addStateTransit(newExpr(HDLOp.EQ, newExpr(HDLOp.AND, rvalid_high, newExpr(HDLOp.EQ, read_length, HDLPreDefinedConstant.INTEGER_ONE)), HDLPreDefinedConstant.HIGH), idle);
 	}
 
-	// for 256-bit width
 	private void setDefaultSetting(AxiMasterReadPort port){
-		// Bytes in transfer: 32
 		switch(width){
 		case   8: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
 		case  16: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b001), HDLPrimitiveType.genVectorType(3))); break;
@@ -141,10 +139,13 @@ public class AXI_Reader extends HDLModule{
 	}
 	
 	public static void main(String... args){
-		AXI_Reader reader = new AXI_Reader(64);
-		HDLUtils.genHDLSequencerDump(reader);
-		HDLUtils.generate(reader, HDLUtils.VHDL);
-		HDLUtils.generate(reader, HDLUtils.Verilog);
+		int[] width = new int[]{8, 16, 32, 64, 128, 256, 512};
+		for(int w: width){
+			AXI_Reader reader = new AXI_Reader(w);
+			HDLUtils.genHDLSequencerDump(reader);
+			HDLUtils.generate(reader, HDLUtils.VHDL);
+			HDLUtils.generate(reader, HDLUtils.Verilog);
+		}
 	}
 
 }
