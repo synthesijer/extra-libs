@@ -170,16 +170,7 @@ public class AXI_Writer extends HDLModule{
 		port.awprot.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3)));
 		
 		// strobe
-		switch(width){
-		case   8: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b1), HDLPrimitiveType.genVectorType(1))); break;
-		case  16: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11), HDLPrimitiveType.genVectorType(2))); break;
-		case  32: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xF), HDLPrimitiveType.genVectorType(4))); break;
-		case  64: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFF), HDLPrimitiveType.genVectorType(8))); break;
-		case 128: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFF), HDLPrimitiveType.genVectorType(16))); break;
-		case 256: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFFFFFF), HDLPrimitiveType.genVectorType(32))); break;
-		case 512: port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0xFFFFFFFFFFFFFFFFL), HDLPrimitiveType.genVectorType(64))); break;
-		default:  port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b11111111), HDLPrimitiveType.genVectorType(8))); break;
-		}
+		port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b1), HDLPrimitiveType.genVectorType(width/8)));
 
 	}
 	
