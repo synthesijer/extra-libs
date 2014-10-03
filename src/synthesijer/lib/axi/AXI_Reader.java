@@ -9,7 +9,6 @@ import synthesijer.hdl.HDLSequencer;
 import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
-import synthesijer.hdl.expr.HDLValue;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.FifoWritePort;
 import synthesijer.utils.Utils;
@@ -45,7 +44,7 @@ public class AXI_Reader extends HDLModule{
 		arready_high = newExpr(HDLOp.EQ, port.arready.getSignal(), HDLPreDefinedConstant.HIGH);
 		rvalid_high = newExpr(HDLOp.EQ, port.rvalid.getSignal(), HDLPreDefinedConstant.HIGH);
 
-		setDefaultSetting(port);
+		port.setDefaultSetting(width);
 		
 		genStateMachine(newSequencer("main"));
 		
@@ -116,26 +115,6 @@ public class AXI_Reader extends HDLModule{
 		read.addStateTransit(newExpr(HDLOp.EQ, newExpr(HDLOp.AND, rvalid_high, rlast_high), HDLPreDefinedConstant.HIGH), idle);
 		read.addStateTransit(newExpr(HDLOp.EQ, newExpr(HDLOp.AND, rvalid_high, rlast_high), HDLPreDefinedConstant.HIGH), idle);
 		read.addStateTransit(newExpr(HDLOp.EQ, newExpr(HDLOp.AND, rvalid_high, newExpr(HDLOp.EQ, read_length, HDLPreDefinedConstant.INTEGER_ONE)), HDLPreDefinedConstant.HIGH), idle);
-	}
-
-	private void setDefaultSetting(AxiMasterReadPort port){
-		switch(width){
-		case   8: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
-		case  16: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b001), HDLPrimitiveType.genVectorType(3))); break;
-		case  32: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b010), HDLPrimitiveType.genVectorType(3))); break;
-		case  64: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b011), HDLPrimitiveType.genVectorType(3))); break;
-		case 128: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b100), HDLPrimitiveType.genVectorType(3))); break;
-		case 256: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3))); break;
-		case 512: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b110), HDLPrimitiveType.genVectorType(3))); break;
-		default: port.arsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
-		}
-
-		// Burst type encoding: INCR
-		port.arburst.getSignal().setAssign(null, new HDLValue(String.valueOf(0b01), HDLPrimitiveType.genVectorType(2)));
-		// Normal Non-cache-able Buffer
-		port.arcache.getSignal().setAssign(null, new HDLValue(String.valueOf(0b0011), HDLPrimitiveType.genVectorType(4)));
-		// protocol
-		port.arprot.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3)));
 	}
 	
 	public static void main(String... args){

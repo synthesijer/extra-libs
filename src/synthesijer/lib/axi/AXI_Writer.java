@@ -60,7 +60,7 @@ public class AXI_Writer extends HDLModule{
 		write_done = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ZERO);
 		awready_high = newExpr(HDLOp.EQ, port.awready.getSignal(), HDLPreDefinedConstant.HIGH);
 
-		setDefaultSetting(port);
+		port.setDefaultSetting(width);
 		
 		genStateMachine(newSequencer("main"));
 		
@@ -148,30 +148,6 @@ public class AXI_Writer extends HDLModule{
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, write_done), idle);
 		write_next.addStateTransit(newExpr(HDLOp.AND, wready, newExpr(HDLOp.NOT, write_done)), write);
 		
-	}
-
-	private void setDefaultSetting(AxiMasterWritePort port){
-		switch(width){
-		case   8: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
-		case  16: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b001), HDLPrimitiveType.genVectorType(3))); break;
-		case  32: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b010), HDLPrimitiveType.genVectorType(3))); break;
-		case  64: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b011), HDLPrimitiveType.genVectorType(3))); break;
-		case 128: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b100), HDLPrimitiveType.genVectorType(3))); break;
-		case 256: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b101), HDLPrimitiveType.genVectorType(3))); break;
-		case 512: port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b110), HDLPrimitiveType.genVectorType(3))); break;
-		default:  port.awsize.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3))); break;
-		}
-
-		// Burst type encoding: INCR
-		port.awburst.getSignal().setAssign(null, new HDLValue(String.valueOf(0b01), HDLPrimitiveType.genVectorType(2)));
-		// Normal Non-cache-able Buffer
-		port.awcache.getSignal().setAssign(null, new HDLValue(String.valueOf(0b0011), HDLPrimitiveType.genVectorType(4)));
-		// protocol
-		port.awprot.getSignal().setAssign(null, new HDLValue(String.valueOf(0b000), HDLPrimitiveType.genVectorType(3)));
-		
-		// strobe
-		port.wstrb.getSignal().setAssign(null, new HDLValue(String.valueOf(0b1), HDLPrimitiveType.genVectorType(width/8)));
-
 	}
 	
 	public static void main(String... args){
