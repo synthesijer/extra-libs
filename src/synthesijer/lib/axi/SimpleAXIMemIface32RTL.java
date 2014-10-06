@@ -38,6 +38,8 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		rdata = Utils.genOutputPort(this, "data_dout", 32);
 		we = Utils.genInputPort(this, "data_we");
 		oe = Utils.genInputPort(this, "data_oe");
+		HDLPort length = Utils.genOutputPort(this, "data_length", 32);
+		length.getSignal().setAssign(null, Utils.value(0x7FFFFFFF, 32)); 
 		hdl_busy = Utils.genOutputPort(this, "busy");
 		
 		reader = new AxiMasterReadPort(this, "axi_reader_", 32);

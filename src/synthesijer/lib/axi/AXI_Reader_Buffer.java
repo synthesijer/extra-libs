@@ -10,37 +10,40 @@ import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.sequencer.SequencerState;
-import synthesijer.utils.FifoWritePort;
+import synthesijer.utils.MemoryWritePort;
 import synthesijer.utils.Utils;
 
-public class AXI_Reader extends HDLModule{
+public class AXI_Reader_Buffer extends HDLModule{
 	
-	private FifoWritePort fifo;
-	private AxiMasterReadPort port;
-	private HDLPort req, busy;
+	public final MemoryWritePort mem;
+	public final AxiMasterReadPort port;
+	public final HDLPort req, busy;
 	
-	private HDLPort addr, len;
+	public final HDLPort addr, len;
 
 	private HDLExpr arready_high, rvalid_high;
+	private HDLSignal next_write_addr;
 	
 	private final int width;
 
-	public AXI_Reader(int width){
-		super("axi_reader_" + width, "clk", "reset");
+	public AXI_Reader_Buffer(int width){
+		super("axi_reader_buffer_" + width, "clk", "reset");
 		this.width = width;
 		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
-		
-		fifo = new FifoWritePort(this, "fifo_", width);
+
+		mem = new MemoryWritePort(this, "mem_", 32);
 		port = new AxiMasterReadPort(this, "S_AXI_", width);
 		
 		req = Utils.genInputPort(this, "request");
 		busy = Utils.genOutputPort(this, "busy");
 		
 		addr = Utils.genInputPort(this, "addr", 32);
-		len = Utils.genInputPort(this, "len", 8);
+		len = Utils.genInputPort(this, "len", 32);
 		
-		fifo.wclk.getSignal().setAssign(null, getSysClk().getSignal());
+		mem.wclk.getSignal().setAssign(null, getSysClk().getSignal());
 		
+		next_write_addr = newSignal("next_write_addr", HDLPrimitiveType.genSignedType(32));
+
 		arready_high = newExpr(HDLOp.EQ, port.arready.getSignal(), HDLPreDefinedConstant.HIGH);
 		rvalid_high = newExpr(HDLOp.EQ, port.rvalid.getSignal(), HDLPreDefinedConstant.HIGH);
 
@@ -53,11 +56,10 @@ public class AXI_Reader extends HDLModule{
 	private HDLSignal read_length;
 	private SequencerState genInit(HDLSequencer s){
 		SequencerState state = s.addSequencerState("init");
-		// INIT: check whether FIFO is full or not 
 		port.araddr.getSignal().setAssign(state, addr.getSignal());
 		port.arvalid.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
-		port.arlen.getSignal().setAssign(state, newExpr(HDLOp.SUB, len.getSignal(), HDLPreDefinedConstant.INTEGER_ONE));
-		read_length = newSignal("read_length", HDLPrimitiveType.genSignedType(8));
+		port.arlen.getSignal().setAssign(state, newExpr(HDLOp.DROPHEAD, newExpr(HDLOp.SUB, len.getSignal(), HDLPreDefinedConstant.INTEGER_ONE), Utils.value(24, 32)));
+		read_length = newSignal("read_length", HDLPrimitiveType.genSignedType(32));
 		read_length.setAssign(state, len.getSignal());
 		return state;
 	}
@@ -65,23 +67,27 @@ public class AXI_Reader extends HDLModule{
 	private SequencerState genRead0(HDLSequencer s){
 		SequencerState state = s.addSequencerState("read0");
 		port.arvalid.getSignal().setAssign(state, newExpr(HDLOp.IF, arready_high, HDLPreDefinedConstant.LOW, HDLPreDefinedConstant.HIGH));
-		fifo.dout.getSignal().setAssign(state, port.rdata.getSignal()); // fifo.dout <- port.rdata
-		fifo.we.getSignal().setAssign(state, rvalid_high);
 		read_length.setAssign(state,
 				newExpr(HDLOp.IF, rvalid_high,
 						newExpr(HDLOp.SUB, read_length, HDLPreDefinedConstant.INTEGER_ONE),
 						read_length));
+		mem.dout.getSignal().setAssign(state, port.rdata.getSignal());
+		mem.we.getSignal().setAssign(state, rvalid_high);
+		mem.address.getSignal().setAssign(state, HDLPreDefinedConstant.VECTOR_ZERO);
+		next_write_addr.setAssign(state, newExpr(HDLOp.ADD, next_write_addr, 1));
 		return state;
 	}
 	
 	private SequencerState genRead(HDLSequencer s){
 		SequencerState state = s.addSequencerState("read");
-		fifo.dout.getSignal().setAssign(state, port.rdata.getSignal()); // fifo.dout <- port.rdata
-		fifo.we.getSignal().setAssign(state, rvalid_high);
 		read_length.setAssign(state,
 				newExpr(HDLOp.IF, rvalid_high,
 						newExpr(HDLOp.SUB, read_length, HDLPreDefinedConstant.INTEGER_ONE),
 						read_length));
+		mem.dout.getSignal().setAssign(state, port.rdata.getSignal());
+		mem.we.getSignal().setAssign(state, rvalid_high);
+		mem.address.getSignal().setAssign(state, next_write_addr);
+		next_write_addr.setAssign(state, newExpr(HDLOp.ADD, next_write_addr, 1));
 		return state;
 	}
 	
@@ -93,7 +99,8 @@ public class AXI_Reader extends HDLModule{
 		// IDLE
 		HDLExpr req_assert = newExpr(HDLOp.EQ, req.getSignal(), HDLPreDefinedConstant.HIGH);
 		busy.getSignal().setAssign(idle, req_assert);
-		fifo.we.getSignal().setAssign(idle, HDLPreDefinedConstant.LOW);
+		mem.we.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW);
+		next_write_addr.setAssign(idle, HDLPreDefinedConstant.INTEGER_ZERO);
 		
 		SequencerState init = genInit(s);
 		SequencerState read0 = genRead0(s);
@@ -103,8 +110,7 @@ public class AXI_Reader extends HDLModule{
 		idle.addStateTransit(req_assert, init);
 
 		// init -> read0
-		HDLExpr fifo_ready = newExpr(HDLOp.EQ, fifo.full.getSignal(), HDLPreDefinedConstant.LOW);
-		init.addStateTransit(fifo_ready, read0);
+		init.addStateTransit(read0);
 		
 		// READ0
 		read0.addStateTransit(arready_high, read); // read0 -> read
@@ -119,7 +125,7 @@ public class AXI_Reader extends HDLModule{
 	public static void main(String... args){
 		int[] width = new int[]{8, 16, 32, 64, 128, 256, 512};
 		for(int w: width){
-			AXI_Reader reader = new AXI_Reader(w);
+			AXI_Reader_Buffer reader = new AXI_Reader_Buffer(w);
 			HDLUtils.genHDLSequencerDump(reader);
 			HDLUtils.generate(reader, HDLUtils.VHDL);
 			HDLUtils.generate(reader, HDLUtils.Verilog);
