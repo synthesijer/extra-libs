@@ -62,7 +62,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		
 		// IDLE
 		writer.awaddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
-		writer.awlen.getSignal().setAssign(seq.getIdleState(), Utils.value(1, 8));
+		writer.awlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
 		writer.awvalid.getSignal().setAssign(seq.getIdleState(), we.getSignal()); // kick axi_writer
 		write_state_busy.setAssign(seq.getIdleState(), we.getSignal());
 
@@ -75,13 +75,13 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		writer.wlast.getSignal().setAssign(s0, writer.awready.getSignal()); // 
 		writer.wvalid.getSignal().setAssign(s0, writer.awready.getSignal()); // 
 		SequencerState s1 = seq.addSequencerState("s1");
-		s0.addStateTransit(newExpr(HDLOp.NOT, writer.awready.getSignal()), s1);
+		s0.addStateTransit(writer.awready.getSignal(), s1);
 		
 		// S1
 		writer.wlast.getSignal().setAssign(s0, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
 		writer.wvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
 		write_state_busy.setAssign(seq.getIdleState(), HDLPreDefinedConstant.LOW);
-		s1.addStateTransit(newExpr(HDLOp.NOT, writer.wready.getSignal()), seq.getIdleState());
+		s1.addStateTransit(writer.wready.getSignal(), seq.getIdleState());
 	}
 		
 	private void genReadSeq(){
@@ -90,7 +90,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		// IDLE
 		reader.arvalid.getSignal().setAssign(seq.getIdleState(), oe.getSignal()); // kick axi_reader
 		reader.araddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
-		reader.arlen.getSignal().setAssign(seq.getIdleState(), Utils.value(1, 8));
+		reader.arlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
 		SequencerState s0 = seq.addSequencerState("s0");
 		seq.getIdleState().addStateTransit(oe.getSignal(), s0); // idle -> s0, when oe = '1'
 		read_state_busy.setAssign(seq.getIdleState(), oe.getSignal()); // to start read sequence

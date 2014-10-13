@@ -18,8 +18,12 @@ public class SimpleAXIMemIface32RTLTest{
 		
 		int offset = 0x3F000000;
 		
-		for(int i = 0; i < 10000; i++){
-			write_data(i + offset, 0xFFFFFF);
+		for(int j = 0; j < 300; j++){
+			int y = (j << 10) + (j << 9) + (j << 8) + (j << 7);
+			for(int i = 0; i < 300; i++){
+				int pt = i + y;
+				write_data((pt << 2) + offset, 0xFFFFFF);
+			}
 		}
 		
 	}
