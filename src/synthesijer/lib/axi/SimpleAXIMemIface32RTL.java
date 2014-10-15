@@ -78,8 +78,8 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		s0.addStateTransit(writer.awready.getSignal(), s1);
 		
 		// S1
-		writer.wlast.getSignal().setAssign(s0, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
-		writer.wvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
+		writer.wlast.getSignal().setAssign(s1, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
+		writer.wvalid.getSignal().setAssign(s1, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
 		write_state_busy.setAssign(seq.getIdleState(), HDLPreDefinedConstant.LOW);
 		s1.addStateTransit(writer.wready.getSignal(), seq.getIdleState());
 	}
