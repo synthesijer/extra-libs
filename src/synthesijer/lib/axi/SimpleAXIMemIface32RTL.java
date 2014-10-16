@@ -8,6 +8,7 @@ import synthesijer.hdl.HDLSequencer;
 import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
+import synthesijer.hdl.sample.BasicSim;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.Utils;
 
@@ -52,13 +53,14 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		write_state_busy = newSignal("write_state_busy", HDLPrimitiveType.genBitType());
 		
 		hdl_busy.getSignal().setAssign(null, newExpr(HDLOp.OR, write_state_busy, read_state_busy));
-		
+				
 		genWriteSeq();
 		genReadSeq();
 	}
 	
 	private void genWriteSeq(){
 		HDLSequencer seq = newSequencer("write_seq");
+		writer.bready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
 		
 		// IDLE
 		writer.awaddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
@@ -86,6 +88,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		
 	private void genReadSeq(){
 		HDLSequencer seq = newSequencer("read_seq");
+		reader.rready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
 		
 		// IDLE
 		reader.arvalid.getSignal().setAssign(seq.getIdleState(), oe.getSignal()); // kick axi_reader
@@ -105,13 +108,27 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		read_state_busy.setAssign(s1, newExpr(HDLOp.NOT, reader.rvalid.getSignal())); // de-assert, just after rvalid is asserted.
 		rdata.getSignal().setAssign(s1, reader.rdata.getSignal());
 	}
-	
 	public static void main(String... args){
 		SimpleAXIMemIface32RTL m = new SimpleAXIMemIface32RTL();
 		HDLUtils.genHDLSequencerDump(m);
 		HDLUtils.genResourceUsageTable(m);
 		HDLUtils.generate(m, HDLUtils.VHDL);
 		HDLUtils.generate(m, HDLUtils.Verilog);
+		//HDLUtils.generate(new SimpleAXIMemIface32RTL_Sim(m), HDLUtils.VHDL);
 	}
 
 }
+
+
+/*	
+class SimpleAXIMemIface32RTL_Sim extends BasicSim{
+	
+	public SimpleAXIMemIface32RTL_Sim(SimpleAXIMemIface32RTL target){
+		super(target, "simple_axi_memiface32_sim");
+		inst.getSignalForPort(target.we.getName()).setAssign(null, newExpr(HDLOp.IF, after(100), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
+		inst.getSignalForPort(target.writer.awready.getName()).setAssign(null, newExpr(HDLOp.IF, after(110), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
+		inst.getSignalForPort(target.writer.wready.getName()).setAssign(null, newExpr(HDLOp.IF, after(150), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
+	}
+	
+}
+*/

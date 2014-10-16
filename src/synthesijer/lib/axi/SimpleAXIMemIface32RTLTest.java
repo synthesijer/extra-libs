@@ -22,7 +22,7 @@ public class SimpleAXIMemIface32RTLTest{
 			int y = (j << 10) + (j << 9) + (j << 8) + (j << 7);
 			for(int i = 0; i < 300; i++){
 				int pt = i + y;
-				write_data((pt << 2) + offset, 0xFFFFFF);
+				write_data((pt << 2) + offset, 0xFFFFFFFF);
 			}
 		}
 		
