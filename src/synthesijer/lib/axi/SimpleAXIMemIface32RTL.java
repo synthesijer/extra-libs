@@ -1,5 +1,7 @@
 package synthesijer.lib.axi;
 
+import java.util.EnumSet;
+
 import synthesijer.hdl.HDLModule;
 import synthesijer.hdl.HDLOp;
 import synthesijer.hdl.HDLPort;
@@ -8,7 +10,6 @@ import synthesijer.hdl.HDLSequencer;
 import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
-import synthesijer.hdl.sample.BasicSim;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.Utils;
 
@@ -24,6 +25,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	// RTL implementation
 	
 	public final HDLPort addr, wdata, rdata, we, oe, hdl_busy;
+	public final HDLPort forbid;
 	
 	public final AxiMasterReadPort reader;
 	public final AxiMasterWritePort writer;
@@ -42,6 +44,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		HDLPort length = Utils.genOutputPort(this, "data_length", 32);
 		length.getSignal().setAssign(null, Utils.value(0x7FFFFFFF, 32)); 
 		hdl_busy = Utils.genOutputPort(this, "busy");
+		forbid = Utils.genInputPort(this, "forbid", EnumSet.of(HDLPort.OPTION.EXPORT));
 		
 		reader = new AxiMasterReadPort(this, "axi_reader_", 32);
 		reader.setDefaultSetting(32);
@@ -52,7 +55,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		read_state_busy = newSignal("read_state_busy", HDLPrimitiveType.genBitType());
 		write_state_busy = newSignal("write_state_busy", HDLPrimitiveType.genBitType());
 		
-		hdl_busy.getSignal().setAssign(null, newExpr(HDLOp.OR, write_state_busy, read_state_busy));
+		hdl_busy.getSignal().setAssign(null, newExpr(HDLOp.OR, newExpr(HDLOp.OR, write_state_busy, read_state_busy), forbid.getSignal()));
 				
 		genWriteSeq();
 		genReadSeq();
