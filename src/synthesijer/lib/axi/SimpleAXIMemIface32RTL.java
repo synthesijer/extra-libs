@@ -70,13 +70,13 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		writer.awlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
 		writer.awvalid.getSignal().setAssign(seq.getIdleState(), we.getSignal()); // kick axi_writer
 		write_state_busy.setAssign(seq.getIdleState(), we.getSignal());
+		writer.wdata.getSignal().setAssign(seq.getIdleState(), wdata.getSignal());
 
 		SequencerState s0 = seq.addSequencerState("s0");
 		seq.getIdleState().addStateTransit(we.getSignal(), s0);
 		
 		// S0
 		writer.awvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, writer.awready.getSignal())); // de-assert, just after awready is asserted.
-		writer.wdata.getSignal().setAssign(s0, wdata.getSignal());
 		writer.wlast.getSignal().setAssign(s0, writer.awready.getSignal()); // 
 		writer.wvalid.getSignal().setAssign(s0, writer.awready.getSignal()); // 
 		SequencerState s1 = seq.addSequencerState("s1");
