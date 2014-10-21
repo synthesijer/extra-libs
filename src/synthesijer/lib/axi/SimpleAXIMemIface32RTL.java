@@ -19,6 +19,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	// dummy variables, for Synthesijer /////////////////////////////
 	public boolean busy;
 	public int data[];
+	public int read_result;
 	/////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////
@@ -26,6 +27,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	
 	public final HDLPort addr, wdata, rdata, we, oe, hdl_busy;
 	public final HDLPort forbid;
+	public final HDLPort hdl_read_result;
 	
 	public final AxiMasterReadPort reader;
 	public final AxiMasterWritePort writer;
@@ -39,6 +41,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		addr = Utils.genInputPort(this, "data_address", 32);
 		wdata = Utils.genInputPort(this, "data_din", 32);
 		rdata = Utils.genOutputPort(this, "data_dout", 32);
+		hdl_read_result = Utils.genOutputPort(this, "read_result", 32);
 		we = Utils.genInputPort(this, "data_we");
 		oe = Utils.genInputPort(this, "data_oe");
 		HDLPort length = Utils.genOutputPort(this, "data_length", 32);
@@ -110,6 +113,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		s1.addStateTransit(reader.rvalid.getSignal(), seq.getIdleState());
 		read_state_busy.setAssign(s1, newExpr(HDLOp.NOT, reader.rvalid.getSignal())); // de-assert, just after rvalid is asserted.
 		rdata.getSignal().setAssign(s1, reader.rdata.getSignal());
+		hdl_read_result.getSignal().setAssign(s1, reader.rdata.getSignal());
 	}
 	public static void main(String... args){
 		SimpleAXIMemIface32RTL m = new SimpleAXIMemIface32RTL();
