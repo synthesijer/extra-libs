@@ -1,5 +1,6 @@
 package synthesijer.lib.axi;
 
+
 import java.util.EnumSet;
 
 import synthesijer.hdl.HDLModule;
@@ -19,6 +20,11 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	// dummy variables, for Synthesijer /////////////////////////////
 	public boolean busy;
 	public int data[];
+	//public int data_din;
+	//public int data_dout;
+	//public boolean data_we;
+	//public boolean data_oe;
+	//public int data_address;
 	public int read_result;
 	/////////////////////////////////////////////////////////////////
 

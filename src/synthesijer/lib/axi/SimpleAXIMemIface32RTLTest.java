@@ -6,12 +6,19 @@ public class SimpleAXIMemIface32RTLTest{
 	
 	public void write_data(int addr, int data){
 		while(obj.busy == true){ ; } 
-		obj.data[addr] =  data;
+		obj.data[addr] = data;
+		//obj.data_address = addr;
+		//obj.data_din = data;
+		//obj.data_we = true;
+		//obj.data_we = false;
 	}
 	
 	public int read_data(int addr){
 		while(obj.busy == true){ ; }
 		int v = obj.data[addr];
+		//obj.data_address = addr;
+		//obj.data_oe = true;
+		//obj.data_oe = false;
 		while(obj.busy == true){ ; }
 		return obj.read_result;
 	}
