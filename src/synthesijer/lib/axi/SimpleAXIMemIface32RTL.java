@@ -35,8 +35,9 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	public final HDLPort forbid;
 	public final HDLPort hdl_read_result;
 	
-	public final AxiMasterReadPort reader;
-	public final AxiMasterWritePort writer;
+	public final AxiMasterPort axi;
+	//public final AxiMasterReadPort reader;
+	//public final AxiMasterWritePort writer;
 	
 	private final HDLSignal read_state_busy;
 	private final HDLSignal write_state_busy;
@@ -55,11 +56,12 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		hdl_busy = Utils.genOutputPort(this, "busy");
 		forbid = Utils.genInputPort(this, "forbid", EnumSet.of(HDLPort.OPTION.EXPORT));
 		
-		reader = new AxiMasterReadPort(this, "axi_reader_", 32);
-		reader.setDefaultSetting(32);
+		axi = new AxiMasterPort(this, "axi", 32);
+		//axi.reader = new AxiMasterReadPort(this, "axi_reader_", 32);
+		//axi.reader.setDefaultSetting(32);
 		
-		writer = new AxiMasterWritePort(this, "axi_writer_", 32);
-		writer.setDefaultSetting(32);
+		//axi.writer = new AxiMasterWritePort(this, "axi_writer_", 32);
+		//axi.writer.setDefaultSetting(32);
 		
 		read_state_busy = newSignal("read_state_busy", HDLPrimitiveType.genBitType());
 		write_state_busy = newSignal("write_state_busy", HDLPrimitiveType.genBitType());
@@ -72,54 +74,54 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	
 	private void genWriteSeq(){
 		HDLSequencer seq = newSequencer("write_seq");
-		writer.bready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
+		axi.writer.bready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
 		
 		// IDLE
-		writer.awaddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
-		writer.awlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
-		writer.awvalid.getSignal().setAssign(seq.getIdleState(), we.getSignal()); // kick axi_writer
+		axi.writer.awaddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
+		axi.writer.awlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
+		axi.writer.awvalid.getSignal().setAssign(seq.getIdleState(), we.getSignal()); // kick axi_writer
 		write_state_busy.setAssign(seq.getIdleState(), we.getSignal());
-		writer.wdata.getSignal().setAssign(seq.getIdleState(), wdata.getSignal());
+		axi.writer.wdata.getSignal().setAssign(seq.getIdleState(), wdata.getSignal());
 
 		SequencerState s0 = seq.addSequencerState("s0");
 		seq.getIdleState().addStateTransit(we.getSignal(), s0);
 		
 		// S0
-		writer.awvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, writer.awready.getSignal())); // de-assert, just after awready is asserted.
-		writer.wlast.getSignal().setAssign(s0, writer.awready.getSignal()); // 
-		writer.wvalid.getSignal().setAssign(s0, writer.awready.getSignal()); // 
+		axi.writer.awvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, axi.writer.awready.getSignal())); // de-assert, just after awready is asserted.
+		axi.writer.wlast.getSignal().setAssign(s0, axi.writer.awready.getSignal()); // 
+		axi.writer.wvalid.getSignal().setAssign(s0, axi.writer.awready.getSignal()); // 
 		SequencerState s1 = seq.addSequencerState("s1");
-		s0.addStateTransit(writer.awready.getSignal(), s1);
+		s0.addStateTransit(axi.writer.awready.getSignal(), s1);
 		
 		// S1
-		writer.wlast.getSignal().setAssign(s1, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
-		writer.wvalid.getSignal().setAssign(s1, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
-		write_state_busy.setAssign(s1, newExpr(HDLOp.NOT, writer.wready.getSignal())); // de-assert, just after wready is asserted.
-		s1.addStateTransit(writer.wready.getSignal(), seq.getIdleState());
+		axi.writer.wlast.getSignal().setAssign(s1, newExpr(HDLOp.NOT, axi.writer.wready.getSignal())); // de-assert, just after wready is asserted.
+		axi.writer.wvalid.getSignal().setAssign(s1, newExpr(HDLOp.NOT, axi.writer.wready.getSignal())); // de-assert, just after wready is asserted.
+		write_state_busy.setAssign(s1, newExpr(HDLOp.NOT, axi.writer.wready.getSignal())); // de-assert, just after wready is asserted.
+		s1.addStateTransit(axi.writer.wready.getSignal(), seq.getIdleState());
 	}
 		
 	private void genReadSeq(){
 		HDLSequencer seq = newSequencer("read_seq");
-		reader.rready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
+		axi.reader.rready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
 		
 		// IDLE
-		reader.arvalid.getSignal().setAssign(seq.getIdleState(), oe.getSignal()); // kick axi_reader
-		reader.araddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
-		reader.arlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
+		axi.reader.arvalid.getSignal().setAssign(seq.getIdleState(), oe.getSignal()); // kick axi_reader
+		axi.reader.araddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
+		axi.reader.arlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
 		SequencerState s0 = seq.addSequencerState("s0");
 		seq.getIdleState().addStateTransit(oe.getSignal(), s0); // idle -> s0, when oe = '1'
 		read_state_busy.setAssign(seq.getIdleState(), oe.getSignal()); // to start read sequence
 		
 		// S0
-		reader.arvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, reader.arready.getSignal()));
+		axi.reader.arvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, axi.reader.arready.getSignal()));
 		SequencerState s1 = seq.addSequencerState("s1");
-		s0.addStateTransit(reader.arready.getSignal(), s1); // s0 -> s1, when arready = '1'
+		s0.addStateTransit(axi.reader.arready.getSignal(), s1); // s0 -> s1, when arready = '1'
 		
 		// S1
-		s1.addStateTransit(reader.rvalid.getSignal(), seq.getIdleState());
-		read_state_busy.setAssign(s1, newExpr(HDLOp.NOT, reader.rvalid.getSignal())); // de-assert, just after rvalid is asserted.
-		rdata.getSignal().setAssign(s1, reader.rdata.getSignal());
-		hdl_read_result.getSignal().setAssign(s1, reader.rdata.getSignal());
+		s1.addStateTransit(axi.reader.rvalid.getSignal(), seq.getIdleState());
+		read_state_busy.setAssign(s1, newExpr(HDLOp.NOT, axi.reader.rvalid.getSignal())); // de-assert, just after rvalid is asserted.
+		rdata.getSignal().setAssign(s1, axi.reader.rdata.getSignal());
+		hdl_read_result.getSignal().setAssign(s1, axi.reader.rdata.getSignal());
 	}
 	public static void main(String... args){
 		SimpleAXIMemIface32RTL m = new SimpleAXIMemIface32RTL();
