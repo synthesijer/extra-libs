@@ -4,33 +4,19 @@ import synthesijer.hdl.HDLSignalBinding;
 
 public class AxiBinding extends HDLSignalBinding{
 	
-	public AxiBinding(String name){
+	private final boolean masterFlag;
+	private final boolean addressSpaceFlag;
+	private final boolean memoryMapFlag;
+	
+	public AxiBinding(String name, boolean masterFlag, boolean addressSpaceFlag, boolean memoryMapFlag){
 		super(name);
+		this.masterFlag = masterFlag;
+		this.addressSpaceFlag = addressSpaceFlag;
+		this.memoryMapFlag = memoryMapFlag;
 	}
 
-/*
-  <spirit:busInterfaces>
-    <spirit:busInterface>
-      <spirit:name>M_AXI</spirit:name>
-      <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="aximm_rtl" spirit:version="1.0"/>
-      <spirit:master>
-        <spirit:addressSpaceRef spirit:addressSpaceRef="M_AXI"/>
-      </spirit:master>
-      <spirit:portMaps>
-        <spirit:portMap>
-          <spirit:logicalPort>
-            <spirit:name>AWADDR</spirit:name>
-          </spirit:logicalPort>
-          <spirit:physicalPort>
-            <spirit:name>M_AXI_awaddr</spirit:name>
-          </spirit:physicalPort>
-        </spirit:portMap>
-	      
-*/
-	
 	public HDLSignalBinding export(String prefix){
-		return new AxiBinding(prefix + "_" + name);
+		return new AxiBinding(prefix + "_" + name, masterFlag, addressSpaceFlag, memoryMapFlag);
 	}
 	
 	public String getVendor(){
@@ -54,15 +40,15 @@ public class AxiBinding extends HDLSignalBinding{
 	}
 
 	public boolean isMaster(){
-		return true;
+		return masterFlag;
 	}
 
 	public boolean hasAddressSpace(){
-		return true;
+		return addressSpaceFlag;
 	}
 
 	public boolean hasMemoryMap(){
-		return false;
+		return memoryMapFlag;
 	}
 
 	public String getAddressBlockName(){
