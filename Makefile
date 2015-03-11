@@ -8,7 +8,8 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
       ./bin/synthesijer/lib/upl/UPLInputPort.class \
       ./bin/synthesijer/lib/upl/UPLOutputPort.class \
       ./bin/synthesijer/lib/upl/UPLPort.class \
-      ./bin/synthesijer/lib/upl/UPLPortSim.class
+      ./bin/synthesijer/lib/upl/UPLPortSim.class \
+      ./bin/synthesijer/utils/ExternalMemory32.class 
 
 SYNTHESIJER ?= ../synthesijer/bin
 

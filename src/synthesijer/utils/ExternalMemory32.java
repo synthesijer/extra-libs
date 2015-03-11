@@ -14,7 +14,7 @@ public class ExternalMemory32 extends HDLModule{
 	int[] data;
 	
 	public ExternalMemory32(String... args){
-		super("external_memory", "clk", "reset");
+		super("external_memory_32", "clk", "reset");
 		
 		HDLPort length = newPort("data_length", DIR.OUT, HDLPrimitiveType.genSignedType(32));
 		HDLPort addr   = newPort("data_address",   DIR.IN, HDLPrimitiveType.genSignedType(32));
