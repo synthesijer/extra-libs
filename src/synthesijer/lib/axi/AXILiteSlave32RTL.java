@@ -108,6 +108,7 @@ public class AXILiteSlave32RTL extends HDLModule{
 		// data <= wdata if wvalid = '1' in idle
 		wdata_b.setAssign(s0, axi.writer.wvalid.getSignal(), axi.writer.wdata.getSignal());
 		we_b.setAssign(s0, axi.writer.wvalid.getSignal());
+		we_b.setDefaultValue(HDLPreDefinedConstant.LOW);
 		// awready <= awvalid in idle
 		axi.writer.wready.getSignal().setAssign(s0, axi.writer.wvalid.getSignal());
 		
