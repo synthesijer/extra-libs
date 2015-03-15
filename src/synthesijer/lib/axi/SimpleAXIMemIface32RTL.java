@@ -56,7 +56,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		hdl_busy = Utils.genOutputPort(this, "busy");
 		forbid = Utils.genInputPort(this, "forbid", EnumSet.of(HDLPort.OPTION.EXPORT));
 		
-		axi = new AxiMasterPort(this, "axi", 32);
+		axi = new AxiMasterPort(this, "axi", 32, 512*1024*1024);
 		//axi.reader = new AxiMasterReadPort(this, "axi_reader_", 32);
 		//axi.reader.setDefaultSetting(32);
 		

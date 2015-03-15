@@ -19,6 +19,12 @@ all: $(SRC)
 	do \
 		java -cp $(SYNTHESIJER):bin $$i ; \
 	done
+	mkdir -p hdl/vhdl/
+	mv *.vhd hdl/vhdl/
+	mkdir -p hdl/verilog/
+	mv *.v hdl/verilog/
+	-rm -f *.dot
+	-rm -f *.html
 
 clean:
 	-rm -f *.vhd
@@ -28,4 +34,5 @@ clean:
 	-rm -f *.dot
 	-rm -f *.o
 	-rm -f a.out
+	-rm -rf hdl
 	-rm -f work-obj93.cf

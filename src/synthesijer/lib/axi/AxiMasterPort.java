@@ -7,7 +7,7 @@ public class AxiMasterPort {
 	public final AxiMasterWritePort writer; 
 	public final AxiMasterReadPort reader;
 	
-	public AxiMasterPort(HDLModule hm, String prefix, int width){
+	public AxiMasterPort(HDLModule hm, String prefix, int width, long range){
 		
 		reader = new AxiMasterReadPort(hm, prefix + "_reader_", width);
 		reader.setDefaultSetting(width);
@@ -15,7 +15,7 @@ public class AxiMasterPort {
 		writer = new AxiMasterWritePort(hm, prefix + "_writer_", width);
 		writer.setDefaultSetting(width);
 		
-		AxiBinding binding = new AxiBinding("axi", true, true, false);
+		AxiBinding binding = new AxiBinding("axi", true, true, false, range);
 		hm.addSignalBinding(binding);
 
 		binding.set(reader.araddr, "ARADDR");

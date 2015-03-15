@@ -7,7 +7,7 @@ public class AxiLiteSlavePort {
 	public final AxiLiteSlaveWritePort writer; 
 	public final AxiLiteSlaveReadPort reader;
 	
-	public AxiLiteSlavePort(HDLModule hm, String prefix, int width){
+	public AxiLiteSlavePort(HDLModule hm, String prefix, int width, long range){
 		
 		reader = new AxiLiteSlaveReadPort(hm, prefix + "_reader_", width);
 		reader.setDefaultSetting(width);
@@ -15,7 +15,7 @@ public class AxiLiteSlavePort {
 		writer = new AxiLiteSlaveWritePort(hm, prefix + "_writer_", width);
 		writer.setDefaultSetting(width);
 		
-		AxiBinding binding = new AxiBinding("axi", false, false, true);
+		AxiBinding binding = new AxiBinding("axi", false, false, true, range);
 		hm.addSignalBinding(binding);
 
 		binding.set(reader.araddr, "ARADDR");

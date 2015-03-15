@@ -7,16 +7,18 @@ public class AxiBinding extends HDLSignalBinding{
 	private final boolean masterFlag;
 	private final boolean addressSpaceFlag;
 	private final boolean memoryMapFlag;
+	private final long range;
 	
-	public AxiBinding(String name, boolean masterFlag, boolean addressSpaceFlag, boolean memoryMapFlag){
+	public AxiBinding(String name, boolean masterFlag, boolean addressSpaceFlag, boolean memoryMapFlag, long range){
 		super(name);
 		this.masterFlag = masterFlag;
 		this.addressSpaceFlag = addressSpaceFlag;
 		this.memoryMapFlag = memoryMapFlag;
+		this.range = range;
 	}
 
 	public HDLSignalBinding export(String prefix){
-		return new AxiBinding(prefix + "_" + name, masterFlag, addressSpaceFlag, memoryMapFlag);
+		return new AxiBinding(prefix + "_" + name, masterFlag, addressSpaceFlag, memoryMapFlag, range);
 	}
 	
 	public String getVendor(){
@@ -55,4 +57,9 @@ public class AxiBinding extends HDLSignalBinding{
 		return "";
 	}
 
+	public long getRange(){
+		System.out.println("get range:" + range + " class:" + this);
+		return range;
+	}
+	
 }

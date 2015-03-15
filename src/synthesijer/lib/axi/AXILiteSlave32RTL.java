@@ -50,7 +50,7 @@ public class AXILiteSlave32RTL extends HDLModule{
 		we_b = newSignal("data_we_b", HDLPrimitiveType.genBitType());
 		oe_b = newSignal("data_oe_b", HDLPrimitiveType.genBitType());
 		
-		axi = new AxiLiteSlavePort(this, "axi", 32);
+		axi = new AxiLiteSlavePort(this, "axi", 32, 4096);
 		
 		BlockRAM ram = new BlockRAM(32, 10, 1024);
 		HDLInstance inst = newModuleInstance(ram, "U");
@@ -84,8 +84,9 @@ public class AXILiteSlave32RTL extends HDLModule{
 		////// IDLE
 		// IDLE -> s0 if awvalid
 		seq.getIdleState().addStateTransit(axi.writer.awvalid.getSignal(), s0);
-		// addr_b <= awaddr if awvalid = '1' in idle
-		addr_b.setAssign(seq.getIdleState(), axi.writer.awvalid.getSignal(), axi.writer.awaddr.getSignal());
+		// addr_b <= (awaddr >> 2) if awvalid = '1' in idle
+		addr_b.setAssign(seq.getIdleState(), axi.writer.awvalid.getSignal(),
+				newExpr(HDLOp.LOGIC_RSHIFT, axi.writer.awaddr.getSignal(), Utils.value(2, 32)));
 		// awready <= awvalid in idle
 		axi.writer.awready.getSignal().setAssign(seq.getIdleState(), axi.writer.awvalid.getSignal());
 		// bvalid <= bready in idle
@@ -95,8 +96,9 @@ public class AXILiteSlave32RTL extends HDLModule{
 		HDLExpr read_kick = newExpr(HDLOp.AND, axi.reader.arvalid.getSignal(), newExpr(HDLOp.NOT, axi.writer.awvalid.getSignal())); 
 		// IDLE -> s1 if read_kick
 		seq.getIdleState().addStateTransit(read_kick, s1);
-		// addr_b <= awaddr if read_kick in idle
-		addr_b.setAssign(seq.getIdleState(), read_kick, axi.reader.araddr.getSignal());
+		// addr_b <= (araddr >> 2) if read_kick in idle
+		addr_b.setAssign(seq.getIdleState(), read_kick,
+				newExpr(HDLOp.LOGIC_RSHIFT, axi.reader.araddr.getSignal(), Utils.value(2, 32)));
 		// arready <= read_kick in idle
 		axi.reader.arready.getSignal().setAssign(seq.getIdleState(), read_kick);
 
