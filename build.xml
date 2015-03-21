@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <project basedir="." default="build" name="synthesijer-applications">
     <property environment="env"/>
-    <property name="synthesijer.location" value="../synthesijer"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.8"/>
     <property name="source" value="1.8"/>
-    <path id="synthesijer.classpath">
-        <pathelement location="${synthesijer.location}/bin"/>
-    </path>
     <path id="synthesijer-applications.classpath">
         <pathelement location="bin"/>
-        <path refid="synthesijer.classpath"/>
+        <pathelement location="${env.SYNTHESIJER}"/>
     </path>
     <target name="init">
         <mkdir dir="bin"/>
@@ -22,9 +18,6 @@
     </target>
     <target name="clean">
         <delete dir="bin"/>
-    </target>
-    <target depends="clean" name="cleanall">
-        <ant antfile="build.xml" dir="${synthesijer.location}" inheritAll="false" target="clean"/>
     </target>
     <target depends="build-project" name="build"/>
     <target depends="init" name="build-project">

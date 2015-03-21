@@ -58,7 +58,6 @@ public class AxiBinding extends HDLSignalBinding{
 	}
 
 	public long getRange(){
-		System.out.println("get range:" + range + " class:" + this);
 		return range;
 	}
 	

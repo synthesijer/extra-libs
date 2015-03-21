@@ -3,6 +3,7 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
       ./bin/synthesijer/lib/axi/AXI_Writer.class \
       ./bin/synthesijer/lib/axi/AXI_Writer_Buffer.class \
       ./bin/synthesijer/lib/axi/AXILiteSlave32RTL.class \
+      ./bin/synthesijer/lib/axi/AXIMemIface32RTL.class \
       ./bin/synthesijer/lib/axi/PagedAXIMemIface32RTL.class \
       ./bin/synthesijer/lib/axi/SimpleAXIMemIface32RTL.class \
       ./bin/synthesijer/lib/upl/UPLInputPort.class \
