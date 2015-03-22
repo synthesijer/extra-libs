@@ -163,12 +163,8 @@ public class UPLPort extends HDLModule{
 	
 	public static void main(String... args){
 		UPLPort m = new UPLPort();
-		BlockRAM bram = new BlockRAM(32, 10, 1024);
-		HDLInstance ram = m.newModuleInstance(bram, "U_RAM");
-		ram.getSignalForPort(bram.getSysClkName()).setAssign(null, m.getSysClk().getSignal());
-		ram.getSignalForPort(bram.getSysResetName()).setAssign(null, m.getSysReset().getSignal());
-		
 		HDLUtils.generate(m, HDLUtils.VHDL);
+		HDLUtils.generate(m, HDLUtils.Verilog);
 	}
 	
 }
