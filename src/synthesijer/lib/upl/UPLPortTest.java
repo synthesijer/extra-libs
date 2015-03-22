@@ -19,7 +19,6 @@ public class UPLPortTest {
 	
 	public void run(){
 		while(port.ready == false) ;
-		port.op_start = true;
 		port.send_length = port.recv_length;
 				
 		int len = port.data[DATA_LENGTH];
@@ -37,10 +36,8 @@ public class UPLPortTest {
 			r += (toLow((v >> 24) & 0x000000FF)) << 24;
 			port.data[i+DATA_OFFSET] = r;
 		}
-		
-		port.op_start = false;
-		port.op_done = true;
-		port.op_done = false;
+		port.done = true;
+		port.done = false;
 	}
 
 }

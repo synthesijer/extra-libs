@@ -19,11 +19,10 @@ public class UPLPortSim extends BasicSim{
 		HDLExpr in_pulse = delayPulse(ss, "in_period", in_ack, 10);
 		in_en.setAssign(ss, newExpr(HDLOp.IF, in_pulse, HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
 		
-		HDLSignal opDone = inst.getSignalForPort(target.pOpDone.getName());
+		HDLSignal opDone = inst.getSignalForPort(target.pDone.getName());
 		HDLSignal opReady = inst.getSignalForPort(target.pReady.getName());
 		HDLSignal opReady_d = newSignal("op_ready_d", HDLPrimitiveType.genBitType());
 		opReady_d.setAssign(ss, opReady);
-		inst.getSignalForPort(target.pOpStart.getName()).setAssign(ss, newExpr(HDLOp.AND, opReady, newExpr(HDLOp.NOT, opReady_d)));
 		
 		HDLSignal op_pulse = newSignal("op_pulse", HDLPrimitiveType.genBitType());
 		HDLSignal op_pulse_d = newSignal("op_pulse_d", HDLPrimitiveType.genBitType());
