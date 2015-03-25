@@ -23,12 +23,14 @@ public class UPLOutputPort extends HDLModule{
 	public int[] data;
 	
 	// for HDLModule
-	UPLOut out;
-	HDLPort pReady, pKick, pSendLength;
-	HDLPort pDataAddr, pDataDout, pDataDin, pDataWe;
+	public final UPLOut out;
+	public final HDLPort pReady, pKick, pSendLength;
+	public final HDLSignal local_addr, local_wdata, local_rdata, local_we, local_oe;
 	
-	private HDLValue ZERO = new HDLValue("0", HDLPrimitiveType.genSignedType(32));
-	private HDLValue ONE = new HDLValue("1", HDLPrimitiveType.genSignedType(32));
+	private final HDLValue ZERO = new HDLValue("0", HDLPrimitiveType.genSignedType(32));
+	private final HDLValue ONE = new HDLValue("1", HDLPrimitiveType.genSignedType(32));
+	
+	private final HDLSignal send_count;
 	
 	public UPLOutputPort(String... args){
 		super("upl_output_port", "UPLGlobalClk", "UPLReset");
@@ -37,12 +39,42 @@ public class UPLOutputPort extends HDLModule{
 		pKick = newPort("kick", HDLPort.DIR.IN, HDLPrimitiveType.genBitType());
 		pSendLength = newPort("send_length", HDLPort.DIR.IN, HDLPrimitiveType.genSignedType(32));
 		// for data[]
-		pDataAddr = newPort("data_address", HDLPort.DIR.IN,  HDLPrimitiveType.genSignedType(32));
-		pDataDout  = newPort("data_dout",    HDLPort.DIR.OUT, HDLPrimitiveType.genSignedType(32));
-		pDataDin   = newPort("data_din",     HDLPort.DIR.IN,  HDLPrimitiveType.genSignedType(32));
-		pDataWe    = newPort("data_we",      HDLPort.DIR.IN,  HDLPrimitiveType.genBitType());
+		HDLPort pDataLen  = newPort("data_length",  HDLPort.DIR.OUT,  HDLPrimitiveType.genSignedType(32));
+		HDLPort pDataAddr = newPort("data_address", HDLPort.DIR.IN,  HDLPrimitiveType.genSignedType(32));
+		HDLPort pDataDout = newPort("data_dout",    HDLPort.DIR.OUT, HDLPrimitiveType.genSignedType(32));
+		HDLPort pDataDin  = newPort("data_din",     HDLPort.DIR.IN,  HDLPrimitiveType.genSignedType(32));
+		HDLPort pDataWe   = newPort("data_we",      HDLPort.DIR.IN,  HDLPrimitiveType.genBitType());
+		HDLPort pDataOe   = newPort("data_oe",      HDLPort.DIR.IN,  HDLPrimitiveType.genBitType());
 		
+		BlockRAM bram = new BlockRAM(32, 10, 1024);
+		HDLInstance ram = newModuleInstance(bram, "U_RAM");
+		ram.getSignalForPort(bram.getSysClkName()).setAssign(null, getSysClk().getSignal());
+		ram.getSignalForPort(bram.getSysResetName()).setAssign(null, getSysReset().getSignal());
+		
+		local_rdata = newSignal("local_rdata", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
+		local_addr  = newSignal("local_addr",  HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
+		local_wdata = newSignal("local_din",   HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
+		local_we    = newSignal("local_we",    HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.REGISTER);
+		local_oe    = newSignal("local_oe",    HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.REGISTER);
+
+		ram.getSignalForPort("address").setAssign(null, pDataAddr.getSignal());
+		ram.getSignalForPort("din").setAssign(null, pDataDin.getSignal());
+		ram.getSignalForPort("we").setAssign(null, pDataWe.getSignal());
+		ram.getSignalForPort("oe").setAssign(null, pDataOe.getSignal());
+		pDataLen.getSignal().setAssign(null, ram.getSignalForPort("length"));
+		pDataDout.getSignal().setAssign(null, ram.getSignalForPort("dout"));
+		
+		ram.getSignalForPort("address_b").setAssign(null, local_addr);
+		ram.getSignalForPort("din_b").setAssign(null, local_wdata);
+		ram.getSignalForPort("we_b").setAssign(null, local_we);
+		ram.getSignalForPort("oe_b").setAssign(null, local_oe);
+		local_rdata.setAssign(null, ram.getSignalForPort("dout_b"));
+
 		out = new UPLOut(this, "UPLOut_");
+		
+		send_count = newSignal("send_count", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
+
+		genSequencer();
 		
 	}
 	
@@ -66,7 +98,7 @@ public class UPLOutputPort extends HDLModule{
 		send_count.setAssign(state, newExpr(HDLOp.SUB, send_count, ONE));
 		out.en.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
 		out.en.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW); // otherwise
-		out.data.getSignal().setAssign(state, local_dout);
+		out.data.getSignal().setAssign(state, local_rdata);
 		local_addr.setAssign(state, newExpr(HDLOp.ADD, local_addr, ONE));
 		return state;
 	}
@@ -76,10 +108,9 @@ public class UPLOutputPort extends HDLModule{
 		return s1;
 	}
 	
-	private SequencerState operation;
 	private HDLSequencer genSequencer(){
 		HDLSequencer s = newSequencer("main");
-		operation = operationState(s);
+		SequencerState operation = operationState(s);
 		SequencerState send_wait = sendWaitState(s);
 		SequencerState mem_wait = memWaitState(s);
 		SequencerState send_data = sendDataState(s);
@@ -104,43 +135,8 @@ public class UPLOutputPort extends HDLModule{
 		return s;
 	}
 	
-	private void genMuxRam(HDLSequencer s, HDLInstance ram){
-		HDLSignal ram_addr, ram_we, ram_din, ram_dout;
-		ram_addr = ram.getSignalForPort("address");
-		ram_we = ram.getSignalForPort("we");
-		ram_din = ram.getSignalForPort("din");
-		ram_dout = ram.getSignalForPort("dout");
-		
-		HDLExpr userOp = newExpr(HDLOp.EQ, s.getStateKey(), operation.getStateId());
-		ram_addr.setAssign(null, newExpr(HDLOp.IF, userOp, pDataAddr.getSignal(), local_addr));
-		ram_we.setAssign(null, newExpr(HDLOp.IF, userOp, pDataWe.getSignal(), local_we));
-		ram_din.setAssign(null, newExpr(HDLOp.IF, userOp, pDataDin.getSignal(), local_din));
-		pDataDout.getSignal().setAssign(null, ram_dout);
-		
-		local_dout.setAssign(null, ram_dout);
-	}
-	
-	private HDLSignal local_addr, local_we, local_din, local_dout;
-	private HDLSignal send_count;
-	private void genLocalSignals(){
-		send_count = newSignal("send_count", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-		local_addr = newSignal("local_address", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-		local_we = newSignal("local_we", HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.REGISTER);
-		local_din = newSignal("local_din", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-		local_dout = newSignal("local_dout", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-	}
-	
 	public static void main(String... args){
 		UPLOutputPort m = new UPLOutputPort();
-		BlockRAM bram = new BlockRAM(32, 10, 1024);
-		HDLInstance ram = m.newModuleInstance(bram, "U_RAM");
-		ram.getSignalForPort(bram.getSysClkName()).setAssign(null, m.getSysClk().getSignal());
-		ram.getSignalForPort(bram.getSysResetName()).setAssign(null, m.getSysReset().getSignal());
-		
-		m.genLocalSignals();
-		HDLSequencer s = m.genSequencer();
-		m.genMuxRam(s, ram);		
-		
 		HDLUtils.generate(m, HDLUtils.VHDL);
 	}
 	
