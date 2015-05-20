@@ -50,7 +50,8 @@ public class AXIMemIface32RTL_Sim extends BasicSim{
 		inst.getSignalForPort(target.hdl_axi_addr.getName()).setAssign(null, Utils.value(100, 32));
 		inst.getSignalForPort(target.axi.writer.awready.getName()).setAssign(null, newExpr(HDLOp.IF, after(100), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
 		inst.getSignalForPort(target.axi.writer.wready.getName()).setAssign(null,
-				newExpr(HDLOp.IF, during(110, 112), HDLPreDefinedConstant.HIGH,
+				//newExpr(HDLOp.IF, during(110, 112), HDLPreDefinedConstant.HIGH,
+				newExpr(HDLOp.IF, during(104, 112), HDLPreDefinedConstant.HIGH,
 				//newExpr(HDLOp.IF, during(150, 152), HDLPreDefinedConstant.HIGH,
 				newExpr(HDLOp.IF, after(160), HDLPreDefinedConstant.HIGH,
 				HDLPreDefinedConstant.LOW)));

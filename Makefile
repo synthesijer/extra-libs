@@ -4,6 +4,7 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
       ./bin/synthesijer/lib/axi/AXI_Writer_Buffer.class \
       ./bin/synthesijer/lib/axi/AXILiteSlave32RTL.class \
       ./bin/synthesijer/lib/axi/AXIMemIface32RTL.class \
+      ./bin/synthesijer/lib/axi/AXIMemIface32RTL_Sim.class \
       ./bin/synthesijer/lib/axi/SimpleAXIMemIface32RTL.class \
       ./bin/synthesijer/lib/upl/UPLInputPort.class \
       ./bin/synthesijer/lib/upl/UPLOutputPort.class \
@@ -14,7 +15,7 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
 SYNTHESIJER ?= ../synthesijer/bin
 
 all: $(SRC)
-	ant -f build.xml
+	#ant -f build.xml
 	for i in $(subst /,.,$(subst bin/,,$(basename $^))) ;\
 	do \
 		java -cp $(SYNTHESIJER):bin $$i ; \
