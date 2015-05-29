@@ -28,7 +28,6 @@ public class AXIMemIface32RTL extends HDLModule{
 	public int data[];
 	public int axi_addr;
 	public int burst_size;
-	public int read_result;
 	/////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////
@@ -95,8 +94,8 @@ public class AXIMemIface32RTL extends HDLModule{
 		
 		HDLSignal hdl_read_kick_d = newSignal("hdl_read_kick_d", HDLPrimitiveType.genBitType());
 		hdl_read_kick_edge = newExpr(HDLOp.AND, newExpr(HDLOp.NOT, hdl_write_kick_edge), 
-				                                newExpr(HDLOp.AND, hdl_read_kick.getSignal(), newExpr(HDLOp.NOT, hdl_read_kick_d)));
-				
+				newExpr(HDLOp.AND, hdl_read_kick.getSignal(), newExpr(HDLOp.NOT, hdl_read_kick_d)));
+		
 		HDLSequencer seq = newSequencer("axi");
 		seq.addSeqExpr(hdl_write_kick_d, hdl_write_kick.getSignal());
 		seq.addSeqExpr(hdl_read_kick_d, hdl_read_kick.getSignal());
