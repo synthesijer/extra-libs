@@ -15,15 +15,17 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
 SYNTHESIJER ?= ../synthesijer/bin
 
 all: $(SRC)
-	#ant -f build.xml
+	ant -f build.xml
 	for i in $(subst /,.,$(subst bin/,,$(basename $^))) ;\
 	do \
 		java -cp $(SYNTHESIJER):bin $$i ; \
 	done
 	mkdir -p hdl/vhdl/
 	mv *.vhd hdl/vhdl/
+	cp hdl_lib/vhdl/*.vhd hdl/vhdl/
 	mkdir -p hdl/verilog/
 	mv *.v hdl/verilog/
+	cp hdl_lib/verilog/*.v hdl/verilog/
 	-rm -f *.dot
 	-rm -f *.html
 
