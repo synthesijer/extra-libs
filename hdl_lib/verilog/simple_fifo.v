@@ -9,6 +9,7 @@ module simple_fifo #(parameter WIDTH = 32, parameter DEPTH = 8)
     input wire [WIDTH-1:0] din,
     input wire 		   re,
     output reg [WIDTH-1:0] dout,
+    //output [WIDTH-1:0] dout,
     output reg 		   empty,
     output reg 		   full,
     output reg [WIDTH-1:0] count
@@ -30,6 +31,7 @@ module simple_fifo #(parameter WIDTH = 32, parameter DEPTH = 8)
    reg 			   full_tmp;
    reg 			   empty_tmp;
     
+   // assign dout = mem[tail_tmp];
    always @(posedge clk) begin
       head_tmp   = head;
       tail_tmp   = tail;

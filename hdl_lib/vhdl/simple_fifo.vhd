@@ -49,6 +49,8 @@ begin
     
   begin
             
+    -- dout <= mem(to_integer(tail_tmp));
+
     if clk'event and clk = '1' then
       
       head_tmp   := head;
