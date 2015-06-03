@@ -140,7 +140,6 @@ public class AXIMemIface32RTL extends HDLModule{
 		HDLSignal fifo_re_flag = newSignal("fifo_re_flag", HDLPrimitiveType.genBitType());
 		fifo_re_flag.setDefaultValue(HDLPreDefinedConstant.LOW);
 		fifo_re.setAssign(null, newExpr(HDLOp.AND, newExpr(HDLOp.AND, fifo_re_flag, axi.writer.wvalid.getSignal()), axi.writer.wready.getSignal()));
-//		fifo_re.setAssign(null, newExpr(HDLOp.AND, fifo_re_flag, axi.writer.wready.getSignal()));
 		axi.writer.wdata.getSignal().setAssign(null, fifo_dout);
 
 		// IDLE
