@@ -176,7 +176,7 @@ public class AXIMemIface32RTL extends HDLModule{
 		fifo_push_count.setAssign(s2, fifo_push_count_dec);
 		local_addr.setAssign(s2, local_addr_inc); // read_ptr++ (read_ptr => 3)
 		SequencerState s3 = seq.addSequencerState("write_s3");
-		fifo_re_flag.setAssign(s2, HDLPreDefinedConstant.HIGH); // in next, read start
+		//fifo_re_flag.setAssign(s2, HDLPreDefinedConstant.HIGH); // in next, read start
 		s2.addStateTransit(s3);
 
 		// s3, start to write data

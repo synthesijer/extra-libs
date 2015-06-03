@@ -49,7 +49,7 @@ begin
     
   begin
             
-    -- dout <= mem(to_integer(tail_tmp));
+    dout <= mem(to_integer(tail_tmp));
 
     if clk'event and clk = '1' then
       
@@ -70,7 +70,7 @@ begin
         
         if re = '1' then
           if (looped_tmp = '1') or (head_tmp /= tail_tmp) then
-            dout <= mem(to_integer(tail_tmp));
+            --dout <= mem(to_integer(tail_tmp));
             if tail_tmp = FIFO_SIZE- 1 then
               tail_tmp := (others => '0');
               looped_tmp := '0';
