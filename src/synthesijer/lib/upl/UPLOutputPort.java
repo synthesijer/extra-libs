@@ -115,22 +115,29 @@ public class UPLOutputPort extends HDLModule{
 		SequencerState mem_wait = memWaitState(s);
 		SequencerState send_data = sendDataState(s);
 		
-		// idle -> operation, when kick is low 
-		HDLExpr opReady = newExpr(HDLOp.EQ, pKick.getSignal(), HDLPreDefinedConstant.LOW);
-		s.getIdleState().addStateTransit(opReady, operation);
+		// idle -> operation
+		s.getIdleState().addStateTransit(operation);
+		
+		HDLSignal kick_d = newSignal("kick_d", HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.REGISTER);
+		kick_d.setAssignForSequencer(s, pKick.getSignal());
+		HDLExpr kick_expr = newExpr(HDLOp.AND, newExpr(HDLOp.EQ, pKick.getSignal(), HDLPreDefinedConstant.HIGH),
+				                               newExpr(HDLOp.EQ, kick_d, HDLPreDefinedConstant.LOW));
 
 		HDLExpr hasData = newExpr(HDLOp.GT, pSendLength.getSignal(), ZERO);
-		HDLExpr noData = newExpr(HDLOp.NOT, hasData);
+		//HDLExpr noData = newExpr(HDLOp.NOT, hasData);
 		// operation -> send_wait, when kick is high and send_length > 0 
-		operation.addStateTransit(newExpr(HDLOp.AND, pKick.getSignal(), hasData), send_wait);
+		operation.addStateTransit(newExpr(HDLOp.AND, kick_expr, hasData), send_wait);
 		// operation -> idle, when kick is high and !(send_length > 0) 
-		operation.addStateTransit(newExpr(HDLOp.AND, pKick.getSignal(), noData), s.getIdleState());
+		// operation.addStateTransit(newExpr(HDLOp.AND, kick_expr, noData), s.getIdleState());
 		
 		send_wait.addStateTransit(newExpr(HDLOp.EQ, out.ack.getSignal(), HDLPreDefinedConstant.HIGH), mem_wait);
 		mem_wait.addStateTransit(send_data);
 		
 		HDLExpr sendLastData = newExpr(HDLOp.EQ, send_count, ONE);
-		send_data.addStateTransit(sendLastData, s.getIdleState());
+		send_data.addStateTransit(sendLastData, operation);
+		
+		pReady.getSignal().setDefaultValue(HDLPreDefinedConstant.LOW);
+		pReady.getSignal().setAssign(operation, HDLPreDefinedConstant.HIGH); // In only operation state, ready is asserted. 
 
 		return s;
 	}
