@@ -10,10 +10,10 @@ public class AxiMasterPort {
 	public AxiMasterPort(HDLModule hm, String prefix, int width, long range){
 		
 		reader = new AxiMasterReadPort(hm, prefix + "_reader_", width);
-		reader.setDefaultSetting(width);
+		reader.setDefaultSetting();
 		
 		writer = new AxiMasterWritePort(hm, prefix + "_writer_", width);
-		writer.setDefaultSetting(width);
+		writer.setDefaultSetting();
 		
 		AxiBinding binding = new AxiBinding("axi", true, true, false, range);
 		hm.addSignalBinding(binding);

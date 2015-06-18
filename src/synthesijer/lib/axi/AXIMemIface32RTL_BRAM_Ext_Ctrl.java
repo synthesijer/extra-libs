@@ -11,10 +11,7 @@ import synthesijer.hdl.HDLPrimitiveType;
 import synthesijer.hdl.HDLSequencer;
 import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
-import synthesijer.hdl.expr.HDLPreDefinedConstant;
-import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.lib.BlockRAM;
-import synthesijer.utils.SimpleFifo;
 
 public class AXIMemIface32RTL_BRAM_Ext_Ctrl extends HDLModule{
 	
@@ -127,167 +124,21 @@ public class AXIMemIface32RTL_BRAM_Ext_Ctrl extends HDLModule{
 		HDLSequencer seq = newSequencer("axi");
 		seq.addSeqExpr(hdl_write_kick_d, hdl_write_kick.getSignal());
 		seq.addSeqExpr(hdl_read_kick_d, hdl_read_kick.getSignal());
-		genWriteSeq(seq);
-		genReadSeq(seq);
+
+		axi.writer.genWriteSeq(
+			     seq,
+			     hdl_write_kick_edge, write_state_busy,
+			     hdl_axi_addr.getSignal(), hdl_burst_size.getSignal(),
+			     local_addr, local_oe, local_rdata
+			     );
+
+		axi.reader.genReadSeq(
+	               seq,
+	               hdl_read_kick_edge, read_state_busy,
+	               hdl_axi_addr.getSignal(), hdl_burst_size.getSignal(),
+	               local_addr, local_we, local_wdata);
 	}
 	
-	private void genWriteSeq(HDLSequencer seq){
-		
-		HDLModule fifo = new SimpleFifo();
-		HDLInstance fifo_inst = newModuleInstance(fifo, "U_FIFO");
-		fifo_inst.getSignalForPort(fifo.getSysClkName()).setAssign(null, getSysClk().getSignal());
-		fifo_inst.getSignalForPort(fifo.getSysResetName()).setAssign(null, getSysReset().getSignal());
-		
-		HDLSignal fifo_we = newSignal("fifo_we", HDLPrimitiveType.genBitType());
-		HDLSignal fifo_re = newSignal("fifo_re", HDLPrimitiveType.genBitType());
-		HDLSignal fifo_din = newSignal("fifo_din", HDLPrimitiveType.genVectorType(32));
-		HDLSignal fifo_dout = newSignal("fifo_dout", HDLPrimitiveType.genVectorType(32));
-		HDLSignal fifo_empty = newSignal("fifo_empty", HDLPrimitiveType.genBitType());
-		HDLSignal fifo_full = newSignal("fifo_full", HDLPrimitiveType.genBitType());
-		HDLSignal fifo_count = newSignal("fifo_count", HDLPrimitiveType.genVectorType(32));
-		
-		fifo_inst.getSignalForPort("we").setAssign(null, fifo_we);
-		fifo_inst.getSignalForPort("din").setAssign(null, fifo_din);
-		fifo_inst.getSignalForPort("re").setAssign(null, fifo_re);
-		fifo_dout.setAssign(null, fifo_inst.getSignalForPort("dout"));
-		fifo_empty.setAssign(null, fifo_inst.getSignalForPort("empty"));
-		fifo_full.setAssign(null, fifo_inst.getSignalForPort("empty"));
-		fifo_count.setAssign(null, fifo_inst.getSignalForPort("count"));
-		
-		fifo_we.setDefaultValue(HDLPreDefinedConstant.LOW);
-//		fifo_re.setDefaultValue(HDLPreDefinedConstant.LOW);
-		
-		HDLSignal fifo_push_count = newSignal("fifo_push_count", HDLPrimitiveType.genVectorType(32));
-		HDLExpr fifo_push_count_dec = newExpr(HDLOp.IF, newExpr(HDLOp.EQ, fifo_push_count, 0), HDLPreDefinedConstant.VECTOR_ZERO, newExpr(HDLOp.SUB, fifo_push_count, 1));
-		
-		axi.writer.bready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
-		HDLSignal count = newSignal("write_count", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-		HDLExpr local_addr_inc = newExpr(HDLOp.ADD, local_addr, 1);
-		HDLExpr count_dec = newExpr(HDLOp.SUB, count, 1);
-		
-		HDLSignal fifo_re_flag = newSignal("fifo_re_flag", HDLPrimitiveType.genBitType());
-		fifo_re_flag.setDefaultValue(HDLPreDefinedConstant.LOW);
-		fifo_re.setAssign(null, newExpr(HDLOp.AND, newExpr(HDLOp.AND, fifo_re_flag, axi.writer.wvalid.getSignal()), axi.writer.wready.getSignal()));
-		axi.writer.wdata.getSignal().setAssign(null, fifo_dout);
-
-		// IDLE
-		axi.writer.awaddr.getSignal().setAssign(seq.getIdleState(), hdl_axi_addr.getSignal());
-		axi.writer.awlen.getSignal().setAssign(seq.getIdleState(), newExpr(HDLOp.DROPHEAD, newExpr(HDLOp.SUB, hdl_burst_size.getSignal(), 1), HDLUtils.value(24, 32))); // bust_size - 1
-		axi.writer.awvalid.getSignal().setAssign(seq.getIdleState(), hdl_write_kick_edge); // kick axi_writer
-		write_state_busy.setAssign(seq.getIdleState(), hdl_write_kick_edge);
-		local_addr.setAssign(seq.getIdleState(), HDLPreDefinedConstant.VECTOR_ZERO);
-		local_oe.setAssign(seq.getIdleState(), hdl_write_kick_edge); 
-		count.setAssign(seq.getIdleState(), hdl_burst_size.getSignal());
-		fifo_push_count.setAssign(seq.getIdleState(), hdl_burst_size.getSignal());
-		axi.writer.wvalid.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.LOW); // de-assert, just after wready is asserted.
-		axi.writer.wlast.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.LOW); // de-assert, just after wready is asserted.
-		SequencerState s0 = seq.addSequencerState("write_s0");
-		seq.getIdleState().addStateTransit(hdl_write_kick_edge, s0);
-		
-		// s0, wait for awready
-		axi.writer.awvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, axi.writer.awready.getSignal())); // de-assert, just after awready is asserted.
-		local_addr.setAssign(s0, newExpr(HDLOp.IF, axi.writer.awready.getSignal(), local_addr_inc, local_addr)); // read_ptr++  (read_ptr => 1)
-		SequencerState s1 = seq.addSequencerState("write_s1");
-		s0.addStateTransit(axi.writer.awready.getSignal(), s1);
-		
-		// s1, bram latency
-		fifo_we.setAssign(s1, newExpr(HDLOp.IF, newExpr(HDLOp.GT, fifo_push_count, 0), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
-		fifo_din.setAssign(s1, local_rdata); // buf0 <= local[0]
-		fifo_push_count.setAssign(s1, fifo_push_count_dec);
-		local_addr.setAssign(s1, local_addr_inc); // read_ptr++ (read_ptr => 2)
-		SequencerState s2 = seq.addSequencerState("write_s2");
-		s1.addStateTransit(s2);
-
-		// s2, bram latency
-		fifo_we.setAssign(s2, newExpr(HDLOp.IF, newExpr(HDLOp.GT, fifo_push_count, 0), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
-		fifo_din.setAssign(s2, local_rdata); // buf0 <= local[1]
-		fifo_push_count.setAssign(s2, fifo_push_count_dec);
-		local_addr.setAssign(s2, local_addr_inc); // read_ptr++ (read_ptr => 3)
-		SequencerState s3 = seq.addSequencerState("write_s3");
-		//fifo_re_flag.setAssign(s2, HDLPreDefinedConstant.HIGH); // in next, read start
-		s2.addStateTransit(s3);
-
-		// s3, start to write data
-		fifo_we.setAssign(s3, newExpr(HDLOp.IF, newExpr(HDLOp.GT, fifo_push_count, 0), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
-		fifo_din.setAssign(s3, local_rdata); // buf0 <= local[1]
-		fifo_push_count.setAssign(s3, fifo_push_count_dec);
-		local_addr.setAssign(s3, local_addr_inc); // read_ptr++
-		
-		axi.writer.wlast.getSignal().setAssign(s3,
-				newExpr(HDLOp.IF,
-						newExpr(HDLOp.EQ, count, 1),
-						// count == 1
-						newExpr(HDLOp.IF,
-								newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal()),
-								HDLPreDefinedConstant.LOW, // last data are accepted 
-								HDLPreDefinedConstant.HIGH), // accepted are not accepted yet
-						// count != 1
-						newExpr(HDLOp.IF,
-								newExpr(HDLOp.EQ, count, 2),
-								// count == 2
-								newExpr(HDLOp.IF,
-										newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal()),
-										HDLPreDefinedConstant.HIGH, // in next, last word
-										HDLPreDefinedConstant.LOW), // in next, not last word
-								// count != 2
-								HDLPreDefinedConstant.LOW)));
-		axi.writer.wvalid.getSignal().setAssign(s3,
-				newExpr(HDLOp.IF,
-						newExpr(HDLOp.GT, count, 1),
-						HDLPreDefinedConstant.HIGH,
-						newExpr(HDLOp.IF,
-								newExpr(HDLOp.AND, newExpr(HDLOp.EQ, count, 1), newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal())),
-								HDLPreDefinedConstant.LOW,
-								HDLPreDefinedConstant.HIGH
-								))); // de-assert, just after wready is asserted.
-//		axi.writer.wdata.getSignal().setAssign(s3, fifo_dout);
-//		fifo_re_flag.setAssign(s3, axi.writer.wready.getSignal());
-		fifo_re_flag.setAssign(s3, HDLPreDefinedConstant.HIGH);
-		count.setAssign(s3, newExpr(HDLOp.IF, newExpr(HDLOp.AND, newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal()), newExpr(HDLOp.GT, count, 0)), count_dec, count));
-		
-		SequencerState s4 = seq.addSequencerState("write_s4");
-		s3.addStateTransit(newExpr(HDLOp.AND, newExpr(HDLOp.EQ, count, 1), newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal())), s4);
-		
-		// s2
-		s4.addStateTransit(axi.writer.bvalid.getSignal(), seq.getIdleState());
-		axi.writer.wlast.getSignal().setAssign(s4, HDLPreDefinedConstant.LOW);
-		axi.writer.wvalid.getSignal().setAssign(s4, HDLPreDefinedConstant.LOW);
-	}
-		
-	private void genReadSeq(HDLSequencer seq){
-		axi.reader.rready.getSignal().setAssign(seq.getIdleState(), HDLPreDefinedConstant.HIGH);
-		HDLSignal count = newSignal("read_count", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-		HDLSignal addr_next = newSignal("addr_next", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.REGISTER);
-		
-		// IDLE
-		axi.reader.arvalid.getSignal().setAssign(seq.getIdleState(), hdl_read_kick_edge); // kick axi_reader
-		axi.reader.araddr.getSignal().setAssign(seq.getIdleState(), hdl_axi_addr.getSignal());
-		axi.reader.arlen.getSignal().setAssign(seq.getIdleState(), newExpr(HDLOp.DROPHEAD, newExpr(HDLOp.SUB, hdl_burst_size.getSignal(), 1), HDLUtils.value(24, 32))); // bust_size - 1
-		SequencerState s0 = seq.addSequencerState("read_s0");
-		count.setAssign(seq.getIdleState(), hdl_burst_size.getSignal());
-		local_addr.setAssign(seq.getIdleState(), HDLPreDefinedConstant.VECTOR_ZERO);
-		addr_next.setAssign(seq.getIdleState(), HDLPreDefinedConstant.VECTOR_ZERO);
-		seq.getIdleState().addStateTransit(hdl_read_kick_edge, s0); // idle -> s0, when oe = '1'
-		read_state_busy.setAssign(seq.getIdleState(), hdl_read_kick_edge); // to start read sequence
-		local_we.setDefaultValue(HDLPreDefinedConstant.LOW);
-		
-		// S0
-		axi.reader.arvalid.getSignal().setAssign(s0, newExpr(HDLOp.NOT, axi.reader.arready.getSignal()));
-		SequencerState s1 = seq.addSequencerState("read_s1");
-		s0.addStateTransit(axi.reader.arready.getSignal(), s1); // s0 -> s1, when arready = '1'
-		
-		HDLExpr last_word = newExpr(HDLOp.EQ, count, 1);
-		HDLExpr count_dec = newExpr(HDLOp.SUB, count, 1);
-		HDLExpr addr_next_inc = newExpr(HDLOp.ADD, addr_next, 1);
-		
-		// S1
-		local_wdata.setAssign(s1, axi.reader.rdata.getSignal());
-		local_addr.setAssign(s1, addr_next);
-		local_we.setAssign(s1, axi.reader.rvalid.getSignal());
-		count.setAssign(s1, newExpr(HDLOp.IF, axi.reader.rvalid.getSignal(), count_dec, count));
-		addr_next.setAssign(s1, newExpr(HDLOp.IF, axi.reader.rvalid.getSignal(), addr_next_inc, addr_next));
-		s1.addStateTransit(newExpr(HDLOp.AND, axi.reader.rvalid.getSignal(), last_word), seq.getIdleState());
-	}
 	public static void main(String... args){
 		AXIMemIface32RTL_BRAM_Ext_Ctrl m = new AXIMemIface32RTL_BRAM_Ext_Ctrl();
 		HDLUtils.genHDLSequencerDump(m);

@@ -43,7 +43,7 @@ public class AXI_Reader extends HDLModule{
 		arready_high = newExpr(HDLOp.EQ, port.arready.getSignal(), HDLPreDefinedConstant.HIGH);
 		rvalid_high = newExpr(HDLOp.EQ, port.rvalid.getSignal(), HDLPreDefinedConstant.HIGH);
 
-		port.setDefaultSetting(width);
+		port.setDefaultSetting();
 		
 		genStateMachine(newSequencer("main"));
 		

@@ -55,7 +55,7 @@ public class AXI_Writer_Buffer extends HDLModule{
 		write_done = newExpr(HDLOp.EQ, write_counter, HDLPreDefinedConstant.INTEGER_ZERO);
 		awready_high = newExpr(HDLOp.EQ, port.awready.getSignal(), HDLPreDefinedConstant.HIGH);
 
-		port.setDefaultSetting(width);
+		port.setDefaultSetting();
 		
 		genStateMachine(newSequencer("main"));
 		
