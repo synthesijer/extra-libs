@@ -4,7 +4,6 @@ import synthesijer.hdl.HDLOp;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.sample.BasicSim;
-import synthesijer.utils.Utils;
 
 public class AXIMemIface32RTL_Sim extends BasicSim{
 	
@@ -20,23 +19,23 @@ public class AXIMemIface32RTL_Sim extends BasicSim{
 				newExpr(HDLOp.IF, at(16), HDLPreDefinedConstant.HIGH,
 				HDLPreDefinedConstant.LOW))))))));
 		inst.getSignalForPort(target.wdata.getName()).setAssign(null,
-				newExpr(HDLOp.IF, at(10), Utils.value(10,32),
-				newExpr(HDLOp.IF, at(11), Utils.value(20,32),
-				newExpr(HDLOp.IF, at(12), Utils.value(30,32),
-				newExpr(HDLOp.IF, at(13), Utils.value(40,32),
-				newExpr(HDLOp.IF, at(14), Utils.value(50,32),
-				newExpr(HDLOp.IF, at(15), Utils.value(60,32),
-				newExpr(HDLOp.IF, at(16), Utils.value(265,32),
-				Utils.value(60,32)))))))));
+				newExpr(HDLOp.IF, at(10), HDLUtils.value(10,32),
+				newExpr(HDLOp.IF, at(11), HDLUtils.value(20,32),
+				newExpr(HDLOp.IF, at(12), HDLUtils.value(30,32),
+				newExpr(HDLOp.IF, at(13), HDLUtils.value(40,32),
+				newExpr(HDLOp.IF, at(14), HDLUtils.value(50,32),
+				newExpr(HDLOp.IF, at(15), HDLUtils.value(60,32),
+				newExpr(HDLOp.IF, at(16), HDLUtils.value(265,32),
+						                   HDLUtils.value(60,32)))))))));
 		inst.getSignalForPort(target.addr.getName()).setAssign(null,
-				newExpr(HDLOp.IF, at(10), Utils.value(0,32),
-				newExpr(HDLOp.IF, at(11), Utils.value(1,32),
-				newExpr(HDLOp.IF, at(12), Utils.value(2,32),
-				newExpr(HDLOp.IF, at(13), Utils.value(3,32),
-				newExpr(HDLOp.IF, at(14), Utils.value(4,32),
-				newExpr(HDLOp.IF, at(15), Utils.value(5,32),
-				newExpr(HDLOp.IF, at(16), Utils.value(255,32),
-				Utils.value(6,32)))))))));
+				newExpr(HDLOp.IF, at(10), HDLUtils.value(0,32),
+				newExpr(HDLOp.IF, at(11), HDLUtils.value(1,32),
+				newExpr(HDLOp.IF, at(12), HDLUtils.value(2,32),
+				newExpr(HDLOp.IF, at(13), HDLUtils.value(3,32),
+				newExpr(HDLOp.IF, at(14), HDLUtils.value(4,32),
+				newExpr(HDLOp.IF, at(15), HDLUtils.value(5,32),
+				newExpr(HDLOp.IF, at(16), HDLUtils.value(255,32),
+						                   HDLUtils.value(6,32)))))))));
 		inst.getSignalForPort(target.hdl_write_kick.getName()).setAssign(null, newExpr(HDLOp.IF, after(100), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
 		
 		//inst.getSignalForPort(target.hdl_burst_size.getName()).setAssign(null, Utils.value(256, 32));
@@ -45,9 +44,9 @@ public class AXIMemIface32RTL_Sim extends BasicSim{
 		//inst.getSignalForPort(target.hdl_burst_size.getName()).setAssign(null, Utils.value(3, 32));
 		//inst.getSignalForPort(target.hdl_burst_size.getName()).setAssign(null, Utils.value(4, 32));
 		//inst.getSignalForPort(target.hdl_burst_size.getName()).setAssign(null, Utils.value(5, 32));
-		inst.getSignalForPort(target.hdl_burst_size.getName()).setAssign(null, Utils.value(6, 32));
+		inst.getSignalForPort(target.hdl_burst_size.getName()).setAssign(null, HDLUtils.value(6, 32));
 		
-		inst.getSignalForPort(target.hdl_axi_addr.getName()).setAssign(null, Utils.value(100, 32));
+		inst.getSignalForPort(target.hdl_axi_addr.getName()).setAssign(null, HDLUtils.value(100, 32));
 		inst.getSignalForPort(target.axi.writer.awready.getName()).setAssign(null, newExpr(HDLOp.IF, after(100), HDLPreDefinedConstant.HIGH, HDLPreDefinedConstant.LOW));
 		inst.getSignalForPort(target.axi.writer.wready.getName()).setAssign(null,
 				//newExpr(HDLOp.IF, during(110, 112), HDLPreDefinedConstant.HIGH,

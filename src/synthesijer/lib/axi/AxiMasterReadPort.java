@@ -5,8 +5,8 @@ import java.util.EnumSet;
 import synthesijer.hdl.HDLModule;
 import synthesijer.hdl.HDLPort;
 import synthesijer.hdl.HDLPrimitiveType;
+import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLValue;
-import synthesijer.utils.Utils;
 
 public class AxiMasterReadPort {
 	
@@ -14,21 +14,21 @@ public class AxiMasterReadPort {
 	public final HDLPort rdata, rresp, rlast, rvalid, rready;
 	
 	public AxiMasterReadPort(HDLModule m, String prefix, int axi_width){
-		araddr  = Utils.genOutputPort(m, prefix + "ARADDR", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
-		arlen   = Utils.genOutputPort(m, prefix + "ARLEN", 8, EnumSet.of(HDLPort.OPTION.EXPORT));
-		arvalid = Utils.genOutputPort(m, prefix + "ARVALID", EnumSet.of(HDLPort.OPTION.EXPORT));
-		arready = Utils.genInputPort(m, prefix + "ARREADY", EnumSet.of(HDLPort.OPTION.EXPORT));
+		araddr  = HDLUtils.genOutputPort(m, prefix + "ARADDR", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		arlen   = HDLUtils.genOutputPort(m, prefix + "ARLEN", 8, EnumSet.of(HDLPort.OPTION.EXPORT));
+		arvalid = HDLUtils.genOutputPort(m, prefix + "ARVALID", EnumSet.of(HDLPort.OPTION.EXPORT));
+		arready = HDLUtils.genInputPort(m, prefix + "ARREADY", EnumSet.of(HDLPort.OPTION.EXPORT));
 		
-		arsize  = Utils.genOutputPort(m, prefix + "ARSIZE", 3, EnumSet.of(HDLPort.OPTION.EXPORT));
-		arburst = Utils.genOutputPort(m, prefix + "ARBURST", 2, EnumSet.of(HDLPort.OPTION.EXPORT));
-		arcache = Utils.genOutputPort(m, prefix + "ARCACHE", 4, EnumSet.of(HDLPort.OPTION.EXPORT));
-		arprot  = Utils.genOutputPort(m, prefix + "ARPROT", 3, EnumSet.of(HDLPort.OPTION.EXPORT));
+		arsize  = HDLUtils.genOutputPort(m, prefix + "ARSIZE", 3, EnumSet.of(HDLPort.OPTION.EXPORT));
+		arburst = HDLUtils.genOutputPort(m, prefix + "ARBURST", 2, EnumSet.of(HDLPort.OPTION.EXPORT));
+		arcache = HDLUtils.genOutputPort(m, prefix + "ARCACHE", 4, EnumSet.of(HDLPort.OPTION.EXPORT));
+		arprot  = HDLUtils.genOutputPort(m, prefix + "ARPROT", 3, EnumSet.of(HDLPort.OPTION.EXPORT));
 		
-		rdata   = Utils.genInputPort(m, prefix + "RDATA", axi_width, EnumSet.of(HDLPort.OPTION.EXPORT));
-		rresp   = Utils.genInputPort(m, prefix + "RRESP", 2, EnumSet.of(HDLPort.OPTION.EXPORT));
-		rlast   = Utils.genInputPort(m, prefix + "RLAST", EnumSet.of(HDLPort.OPTION.EXPORT));
-		rvalid  = Utils.genInputPort(m, prefix + "RVALID", EnumSet.of(HDLPort.OPTION.EXPORT));
-		rready  = Utils.genOutputPort(m, prefix + "RREADY", EnumSet.of(HDLPort.OPTION.EXPORT));
+		rdata   = HDLUtils.genInputPort(m, prefix + "RDATA", axi_width, EnumSet.of(HDLPort.OPTION.EXPORT));
+		rresp   = HDLUtils.genInputPort(m, prefix + "RRESP", 2, EnumSet.of(HDLPort.OPTION.EXPORT));
+		rlast   = HDLUtils.genInputPort(m, prefix + "RLAST", EnumSet.of(HDLPort.OPTION.EXPORT));
+		rvalid  = HDLUtils.genInputPort(m, prefix + "RVALID", EnumSet.of(HDLPort.OPTION.EXPORT));
+		rready  = HDLUtils.genOutputPort(m, prefix + "RREADY", EnumSet.of(HDLPort.OPTION.EXPORT));
 	}
 	
 	public void setDefaultSetting(int width){

@@ -1,6 +1,5 @@
 package synthesijer.lib.axi;
 
-
 import java.util.EnumSet;
 
 import synthesijer.hdl.HDLExpr;
@@ -15,24 +14,26 @@ import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.lib.BlockRAM;
-import synthesijer.utils.SimpleFifo;
+import synthesijer.utils.SimpleFifo128;
 
-public class AXIMemIface32RTL extends HDLModule{
+public class AXIMemIface128RTL_BRAM_Ext_Ctrl extends HDLModule{
 	
 	/////////////////////////////////////////////////////////////////
 	// dummy variables, for Synthesijer /////////////////////////////
 	public boolean busy;
 	public boolean write_kick;
 	public boolean read_kick;
-	public int data[];
+//	public int data[];
 	public int axi_addr;
 	public int burst_size;
+	
+	public boolean ext_ctrl_flag;
 	/////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////
 	// RTL implementation
 	
-	public final HDLPort addr, wdata, rdata, we, oe;
+	//public final HDLPort addr, wdata, rdata, we, oe;
 	public final HDLPort hdl_axi_addr, hdl_busy, hdl_write_kick, hdl_read_kick, hdl_burst_size;
 	public final HDLPort forbid;
 	
@@ -47,14 +48,34 @@ public class AXIMemIface32RTL extends HDLModule{
 	private final HDLExpr hdl_write_kick_edge;
 	private final HDLExpr hdl_read_kick_edge;
 		
-	public AXIMemIface32RTL(String... args){
-		super("axi_memiface_32", "clk", "reset");
+	public AXIMemIface128RTL_BRAM_Ext_Ctrl(String... args){
+		super("axi_memiface_128_bram_ext_ctrl", "clk", "reset");
 		
-		addr = HDLUtils.genInputPort(this, "data_address", 32);
-		wdata = HDLUtils.genInputPort(this, "data_din", 32);
-		rdata = HDLUtils.genOutputPort(this, "data_dout", 32);
-		we = HDLUtils.genInputPort(this, "data_we");
-		oe = HDLUtils.genInputPort(this, "data_oe");
+		// connection from external
+		HDLPort addr1 = HDLUtils.genInputPort(this, "data_address_external", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort din1  = HDLUtils.genInputPort(this, "data_din_external", 128, EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort dout1 = HDLUtils.genOutputPort(this, "data_dout_external", 128, EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort we1   = HDLUtils.genInputPort(this, "data_we_external", EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort oe1   = HDLUtils.genInputPort(this, "data_oe_external", EnumSet.of(HDLPort.OPTION.EXPORT));
+		
+		// signals for BRAM
+		HDLSignal addr = newSignal("data_address_act", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.WIRE);
+		HDLSignal wdata = newSignal("data_din_act", HDLPrimitiveType.genSignedType(128), HDLSignal.ResourceKind.WIRE);
+		HDLSignal rdata = newSignal("data_dout_act", HDLPrimitiveType.genSignedType(128), HDLSignal.ResourceKind.WIRE);
+		HDLSignal we = newSignal("data_we_act", HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.WIRE);
+		HDLSignal oe = newSignal("data_oe_act", HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.WIRE);
+
+		// control signals for external BRAM copy unit
+		HDLPort ext_ctrl = HDLUtils.genInputPort(this, "ext_ctrl", EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort ext_ctrl_flag = HDLUtils.genOutputPort(this, "ext_ctrl_flag");
+		ext_ctrl_flag.getSignal().setAssign(null, ext_ctrl.getSignal());
+		
+		addr.setAssign(null, addr1.getSignal());
+		wdata.setAssign(null, din1.getSignal());
+		dout1.getSignal().setAssign(null, rdata);
+		we.setAssign(null, we1.getSignal());
+		oe.setAssign(null, oe1.getSignal());
+		
 		HDLPort length = HDLUtils.genOutputPort(this, "data_length", 32);
 		hdl_busy = HDLUtils.genOutputPort(this, "busy");
 		hdl_write_kick = HDLUtils.genInputPort(this, "write_kick");
@@ -63,18 +84,18 @@ public class AXIMemIface32RTL extends HDLModule{
 		hdl_axi_addr = HDLUtils.genInputPort(this, "axi_addr", 32);
 		forbid = HDLUtils.genInputPort(this, "forbid", EnumSet.of(HDLPort.OPTION.EXPORT));
 		
-		axi = new AxiMasterPort(this, "axi", 32, 512*1024*1024);
+		axi = new AxiMasterPort(this, "axi", 128, 512*1024*1024);
 		
-		HDLModule ram = new BlockRAM(32, 10, 1024);
+		HDLModule ram = new BlockRAM(128, 10, 1024);
 		buf = newModuleInstance(ram, "BUF");
 		buf.getSignalForPort(ram.getSysClkName()).setAssign(null, getSysClk().getSignal());
 		buf.getSignalForPort(ram.getSysResetName()).setAssign(null, getSysReset().getSignal());
 		// for Java-side connection
-		buf.getSignalForPort("address").setAssign(null, addr.getSignal());
-		buf.getSignalForPort("din").setAssign(null, wdata.getSignal());
-		buf.getSignalForPort("we").setAssign(null, we.getSignal());
-		buf.getSignalForPort("oe").setAssign(null, oe.getSignal());
-		rdata.getSignal().setAssign(null, buf.getSignalForPort("dout"));
+		buf.getSignalForPort("address").setAssign(null, addr);
+		buf.getSignalForPort("din").setAssign(null, wdata);
+		buf.getSignalForPort("we").setAssign(null, we);
+		buf.getSignalForPort("oe").setAssign(null, oe);
+		rdata.setAssign(null, buf.getSignalForPort("dout"));
 		length.getSignal().setAssign(null, buf.getSignalForPort("length"));
 		// for internal connection
 		local_addr  = buf.getSignalForPort("address_b");
@@ -104,15 +125,15 @@ public class AXIMemIface32RTL extends HDLModule{
 	
 	private void genWriteSeq(HDLSequencer seq){
 		
-		HDLModule fifo = new SimpleFifo();
+		HDLModule fifo = new SimpleFifo128();
 		HDLInstance fifo_inst = newModuleInstance(fifo, "U_FIFO");
 		fifo_inst.getSignalForPort(fifo.getSysClkName()).setAssign(null, getSysClk().getSignal());
 		fifo_inst.getSignalForPort(fifo.getSysResetName()).setAssign(null, getSysReset().getSignal());
 		
 		HDLSignal fifo_we = newSignal("fifo_we", HDLPrimitiveType.genBitType());
 		HDLSignal fifo_re = newSignal("fifo_re", HDLPrimitiveType.genBitType());
-		HDLSignal fifo_din = newSignal("fifo_din", HDLPrimitiveType.genVectorType(32));
-		HDLSignal fifo_dout = newSignal("fifo_dout", HDLPrimitiveType.genVectorType(32));
+		HDLSignal fifo_din = newSignal("fifo_din", HDLPrimitiveType.genVectorType(128));
+		HDLSignal fifo_dout = newSignal("fifo_dout", HDLPrimitiveType.genVectorType(128));
 		HDLSignal fifo_empty = newSignal("fifo_empty", HDLPrimitiveType.genBitType());
 		HDLSignal fifo_full = newSignal("fifo_full", HDLPrimitiveType.genBitType());
 		HDLSignal fifo_count = newSignal("fifo_count", HDLPrimitiveType.genVectorType(32));
@@ -219,7 +240,7 @@ public class AXIMemIface32RTL extends HDLModule{
 		SequencerState s4 = seq.addSequencerState("write_s4");
 		s3.addStateTransit(newExpr(HDLOp.AND, newExpr(HDLOp.EQ, count, 1), newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal())), s4);
 		
-		// s4
+		// s2
 		s4.addStateTransit(axi.writer.bvalid.getSignal(), seq.getIdleState());
 		axi.writer.wlast.getSignal().setAssign(s4, HDLPreDefinedConstant.LOW);
 		axi.writer.wvalid.getSignal().setAssign(s4, HDLPreDefinedConstant.LOW);
@@ -260,12 +281,10 @@ public class AXIMemIface32RTL extends HDLModule{
 		s1.addStateTransit(newExpr(HDLOp.AND, axi.reader.rvalid.getSignal(), last_word), seq.getIdleState());
 	}
 	public static void main(String... args){
-		AXIMemIface32RTL m = new AXIMemIface32RTL();
+		AXIMemIface128RTL_BRAM_Ext_Ctrl m = new AXIMemIface128RTL_BRAM_Ext_Ctrl();
 		HDLUtils.genHDLSequencerDump(m);
-		//HDLUtils.genResourceUsageTable(m);
 		HDLUtils.generate(m, HDLUtils.VHDL);
 		HDLUtils.generate(m, HDLUtils.Verilog);
-		//HDLUtils.generate(new SimpleAXIMemIface32RTL_Sim(m), HDLUtils.VHDL);
 	}
 
 }

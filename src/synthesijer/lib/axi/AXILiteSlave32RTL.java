@@ -14,7 +14,6 @@ import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.lib.BlockRAM;
-import synthesijer.utils.Utils;
 
 public class AXILiteSlave32RTL extends HDLModule{
 	
@@ -36,13 +35,13 @@ public class AXILiteSlave32RTL extends HDLModule{
 		
 //		newParameter("DEPTH", HDLPrimitiveType.genIntegerType(), String.valueOf(8));
 		
-		HDLPort length = Utils.genOutputPort(this, "data_length", 32);
+		HDLPort length = HDLUtils.genOutputPort(this, "data_length", 32);
 //		length.getSignal().setAssign(null, new HDLValue("DEPTH", HDLPrimitiveType.genStringType(), HDLPrimitiveType.genDigitType())); 
-		addr  = Utils.genInputPort(this, "data_address", 32);
-		wdata = Utils.genInputPort(this, "data_din", 32);
-		rdata = Utils.genOutputPort(this, "data_dout", 32);
-		we = Utils.genInputPort(this, "data_we");
-		oe = Utils.genInputPort(this, "data_oe");
+		addr  = HDLUtils.genInputPort(this, "data_address", 32);
+		wdata = HDLUtils.genInputPort(this, "data_din", 32);
+		rdata = HDLUtils.genOutputPort(this, "data_dout", 32);
+		we = HDLUtils.genInputPort(this, "data_we");
+		oe = HDLUtils.genInputPort(this, "data_oe");
 		
 		addr_b  = newSignal("data_address_b", HDLPrimitiveType.genSignedType(32));
 		wdata_b = newSignal("data_din_b", HDLPrimitiveType.genSignedType(32));
@@ -86,7 +85,7 @@ public class AXILiteSlave32RTL extends HDLModule{
 		seq.getIdleState().addStateTransit(axi.writer.awvalid.getSignal(), s0);
 		// addr_b <= (awaddr >> 2) if awvalid = '1' in idle
 		addr_b.setAssign(seq.getIdleState(), axi.writer.awvalid.getSignal(),
-				newExpr(HDLOp.LOGIC_RSHIFT, axi.writer.awaddr.getSignal(), Utils.value(2, 32)));
+				newExpr(HDLOp.LOGIC_RSHIFT, axi.writer.awaddr.getSignal(), HDLUtils.value(2, 32)));
 		// awready <= awvalid in idle
 		axi.writer.awready.getSignal().setAssign(seq.getIdleState(), axi.writer.awvalid.getSignal());
 		// bvalid <= bready in idle
@@ -98,7 +97,7 @@ public class AXILiteSlave32RTL extends HDLModule{
 		seq.getIdleState().addStateTransit(read_kick, s1);
 		// addr_b <= (araddr >> 2) if read_kick in idle
 		addr_b.setAssign(seq.getIdleState(), read_kick,
-				newExpr(HDLOp.LOGIC_RSHIFT, axi.reader.araddr.getSignal(), Utils.value(2, 32)));
+				newExpr(HDLOp.LOGIC_RSHIFT, axi.reader.araddr.getSignal(), HDLUtils.value(2, 32)));
 		// arready <= read_kick in idle
 		axi.reader.arready.getSignal().setAssign(seq.getIdleState(), read_kick);
 

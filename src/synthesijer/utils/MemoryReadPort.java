@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import synthesijer.hdl.HDLModule;
 import synthesijer.hdl.HDLPort;
+import synthesijer.hdl.HDLUtils;
 
 public class MemoryReadPort {
 
@@ -13,10 +14,10 @@ public class MemoryReadPort {
 	public final HDLPort rclk;
 	
 	public MemoryReadPort(HDLModule m, String prefix, int width) {
-		din     = Utils.genInputPort(m, prefix + "din", width, EnumSet.of(HDLPort.OPTION.EXPORT));
-		oe      = Utils.genOutputPort(m, prefix + "we", EnumSet.of(HDLPort.OPTION.EXPORT));
-		address = Utils.genOutputPort(m, prefix + "address", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
-		rclk    = Utils.genOutputPort(m, prefix + "wclk", EnumSet.of(HDLPort.OPTION.EXPORT));
+		din     = HDLUtils.genInputPort(m, prefix + "din", width, EnumSet.of(HDLPort.OPTION.EXPORT));
+		oe      = HDLUtils.genOutputPort(m, prefix + "we", EnumSet.of(HDLPort.OPTION.EXPORT));
+		address = HDLUtils.genOutputPort(m, prefix + "address", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		rclk    = HDLUtils.genOutputPort(m, prefix + "wclk", EnumSet.of(HDLPort.OPTION.EXPORT));
 	}
 	
 }

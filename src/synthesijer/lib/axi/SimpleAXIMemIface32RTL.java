@@ -12,7 +12,6 @@ import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.sequencer.SequencerState;
-import synthesijer.utils.Utils;
 
 public class SimpleAXIMemIface32RTL extends HDLModule{
 	
@@ -45,16 +44,16 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 	public SimpleAXIMemIface32RTL(String... args){
 		super("simple_axi_memiface_32", "clk", "reset");
 		
-		addr = Utils.genInputPort(this, "data_address", 32);
-		wdata = Utils.genInputPort(this, "data_din", 32);
-		rdata = Utils.genOutputPort(this, "data_dout", 32);
-		hdl_read_result = Utils.genOutputPort(this, "read_result", 32);
-		we = Utils.genInputPort(this, "data_we");
-		oe = Utils.genInputPort(this, "data_oe");
-		HDLPort length = Utils.genOutputPort(this, "data_length", 32);
-		length.getSignal().setAssign(null, Utils.value(0x7FFFFFFF, 32)); 
-		hdl_busy = Utils.genOutputPort(this, "busy");
-		forbid = Utils.genInputPort(this, "forbid", EnumSet.of(HDLPort.OPTION.EXPORT));
+		addr = HDLUtils.genInputPort(this, "data_address", 32);
+		wdata = HDLUtils.genInputPort(this, "data_din", 32);
+		rdata = HDLUtils.genOutputPort(this, "data_dout", 32);
+		hdl_read_result = HDLUtils.genOutputPort(this, "read_result", 32);
+		we = HDLUtils.genInputPort(this, "data_we");
+		oe = HDLUtils.genInputPort(this, "data_oe");
+		HDLPort length = HDLUtils.genOutputPort(this, "data_length", 32);
+		length.getSignal().setAssign(null, HDLUtils.value(0x7FFFFFFF, 32)); 
+		hdl_busy = HDLUtils.genOutputPort(this, "busy");
+		forbid = HDLUtils.genInputPort(this, "forbid", EnumSet.of(HDLPort.OPTION.EXPORT));
 		
 		axi = new AxiMasterPort(this, "axi", 32, 512*1024*1024);
 		//axi.reader = new AxiMasterReadPort(this, "axi_reader_", 32);
@@ -78,7 +77,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		
 		// IDLE
 		axi.writer.awaddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
-		axi.writer.awlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
+		axi.writer.awlen.getSignal().setAssign(seq.getIdleState(), HDLUtils.value(0, 8)); // Just 1 Byte
 		axi.writer.awvalid.getSignal().setAssign(seq.getIdleState(), we.getSignal()); // kick axi_writer
 		write_state_busy.setAssign(seq.getIdleState(), we.getSignal());
 		axi.writer.wdata.getSignal().setAssign(seq.getIdleState(), wdata.getSignal());
@@ -107,7 +106,7 @@ public class SimpleAXIMemIface32RTL extends HDLModule{
 		// IDLE
 		axi.reader.arvalid.getSignal().setAssign(seq.getIdleState(), oe.getSignal()); // kick axi_reader
 		axi.reader.araddr.getSignal().setAssign(seq.getIdleState(), addr.getSignal());
-		axi.reader.arlen.getSignal().setAssign(seq.getIdleState(), Utils.value(0, 8)); // Just 1 Byte
+		axi.reader.arlen.getSignal().setAssign(seq.getIdleState(), HDLUtils.value(0, 8)); // Just 1 Byte
 		SequencerState s0 = seq.addSequencerState("s0");
 		seq.getIdleState().addStateTransit(oe.getSignal(), s0); // idle -> s0, when oe = '1'
 		read_state_busy.setAssign(seq.getIdleState(), oe.getSignal()); // to start read sequence

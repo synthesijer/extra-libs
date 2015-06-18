@@ -12,7 +12,6 @@ import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.expr.HDLValue;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.MemoryReadPort;
-import synthesijer.utils.Utils;
 
 public class AXI_Writer_Buffer extends HDLModule{
 	
@@ -41,13 +40,13 @@ public class AXI_Writer_Buffer extends HDLModule{
 		mem = new MemoryReadPort(this, "mem_", width);
 		port = new AxiMasterWritePort(this, "S_AXI_", width);
 		
-		req = Utils.genInputPort(this, "request");
-		busy = Utils.genOutputPort(this, "busy");
+		req = HDLUtils.genInputPort(this, "request");
+		busy = HDLUtils.genOutputPort(this, "busy");
 		
-		addr = Utils.genInputPort(this, "addr", 32);
-		len = Utils.genInputPort(this, "len", 32);
+		addr = HDLUtils.genInputPort(this, "addr", 32);
+		len = HDLUtils.genInputPort(this, "len", 32);
 		
-		debug = Utils.genOutputPort(this, "debug", 8);
+		debug = HDLUtils.genOutputPort(this, "debug", 8);
 		
 		mem.rclk.getSignal().setAssign(null, getSysClk().getSignal());
 		next_read_addr = newSignal("next_read_addr", HDLPrimitiveType.genSignedType(32));
@@ -67,7 +66,7 @@ public class AXI_Writer_Buffer extends HDLModule{
 		debug.getSignal().setAssign(state, new HDLValue("1", HDLPrimitiveType.genVectorType(8)));
 		port.awaddr.getSignal().setAssign(state, addr.getSignal());
 		port.awvalid.getSignal().setAssign(state, HDLPreDefinedConstant.HIGH);
-		port.awlen.getSignal().setAssign(state, newExpr(HDLOp.DROPHEAD, newExpr(HDLOp.SUB, len.getSignal(), HDLPreDefinedConstant.INTEGER_ONE), Utils.value(24, 32)));
+		port.awlen.getSignal().setAssign(state, newExpr(HDLOp.DROPHEAD, newExpr(HDLOp.SUB, len.getSignal(), HDLPreDefinedConstant.INTEGER_ONE), HDLUtils.value(24, 32)));
 		write_counter.setAssign(state, len.getSignal());
 		return state;
 	}

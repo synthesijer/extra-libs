@@ -1,6 +1,5 @@
 package synthesijer.lib.axi;
 
-
 import java.util.EnumSet;
 
 import synthesijer.hdl.HDLExpr;
@@ -17,7 +16,7 @@ import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.lib.BlockRAM;
 import synthesijer.utils.SimpleFifo;
 
-public class AXIMemIface32RTL extends HDLModule{
+public class AXIMemIface32RTL_BRAM_Ext_Ctrl extends HDLModule{
 	
 	/////////////////////////////////////////////////////////////////
 	// dummy variables, for Synthesijer /////////////////////////////
@@ -27,12 +26,14 @@ public class AXIMemIface32RTL extends HDLModule{
 	public int data[];
 	public int axi_addr;
 	public int burst_size;
+	
+	public boolean ext_ctrl_flag;
 	/////////////////////////////////////////////////////////////////
 
 	/////////////////////////////////////////////////////////////////
 	// RTL implementation
 	
-	public final HDLPort addr, wdata, rdata, we, oe;
+	//public final HDLPort addr, wdata, rdata, we, oe;
 	public final HDLPort hdl_axi_addr, hdl_busy, hdl_write_kick, hdl_read_kick, hdl_burst_size;
 	public final HDLPort forbid;
 	
@@ -47,14 +48,42 @@ public class AXIMemIface32RTL extends HDLModule{
 	private final HDLExpr hdl_write_kick_edge;
 	private final HDLExpr hdl_read_kick_edge;
 		
-	public AXIMemIface32RTL(String... args){
-		super("axi_memiface_32", "clk", "reset");
+	public AXIMemIface32RTL_BRAM_Ext_Ctrl(String... args){
+		super("axi_memiface_32_bram_ext_ctrl", "clk", "reset");
 		
-		addr = HDLUtils.genInputPort(this, "data_address", 32);
-		wdata = HDLUtils.genInputPort(this, "data_din", 32);
-		rdata = HDLUtils.genOutputPort(this, "data_dout", 32);
-		we = HDLUtils.genInputPort(this, "data_we");
-		oe = HDLUtils.genInputPort(this, "data_oe");
+		// from Java program
+		HDLPort addr0 = HDLUtils.genInputPort(this, "data_address", 32);
+		HDLPort din0  = HDLUtils.genInputPort(this, "data_din", 32);
+		HDLPort dout0 = HDLUtils.genOutputPort(this, "data_dout", 32);
+		HDLPort we0   = HDLUtils.genInputPort(this, "data_we");
+		HDLPort oe0   = HDLUtils.genInputPort(this, "data_oe");
+
+		// connection from external
+		HDLPort addr1 = HDLUtils.genInputPort(this, "data_address_external", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort din1  = HDLUtils.genInputPort(this, "data_din_external", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort dout1 = HDLUtils.genOutputPort(this, "data_dout_external", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort we1   = HDLUtils.genInputPort(this, "data_we_external", EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort oe1   = HDLUtils.genInputPort(this, "data_oe_external", EnumSet.of(HDLPort.OPTION.EXPORT));
+		
+		// signals for BRAM
+		HDLSignal addr = newSignal("data_address_act", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.WIRE);
+		HDLSignal wdata = newSignal("data_din_act", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.WIRE);
+		HDLSignal rdata = newSignal("data_dout_act", HDLPrimitiveType.genSignedType(32), HDLSignal.ResourceKind.WIRE);
+		HDLSignal we = newSignal("data_we_act", HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.WIRE);
+		HDLSignal oe = newSignal("data_oe_act", HDLPrimitiveType.genBitType(), HDLSignal.ResourceKind.WIRE);
+
+		// control signals for external BRAM copy unit
+		HDLPort ext_ctrl = HDLUtils.genInputPort(this, "ext_ctrl", EnumSet.of(HDLPort.OPTION.EXPORT));
+		HDLPort ext_ctrl_flag = HDLUtils.genOutputPort(this, "ext_ctrl_flag");
+		ext_ctrl_flag.getSignal().setAssign(null, ext_ctrl.getSignal());
+		
+		addr.setAssign(null, newExpr(HDLOp.IF, ext_ctrl.getSignal(), addr1.getSignal(), addr0.getSignal()));
+		wdata.setAssign(null, newExpr(HDLOp.IF, ext_ctrl.getSignal(), din1.getSignal(), din0.getSignal()));
+		dout0.getSignal().setAssign(null, rdata);
+		dout1.getSignal().setAssign(null, rdata);
+		we.setAssign(null, newExpr(HDLOp.IF, ext_ctrl.getSignal(), we1.getSignal(), we0.getSignal()));
+		oe.setAssign(null, newExpr(HDLOp.IF, ext_ctrl.getSignal(), oe1.getSignal(), oe0.getSignal()));
+		
 		HDLPort length = HDLUtils.genOutputPort(this, "data_length", 32);
 		hdl_busy = HDLUtils.genOutputPort(this, "busy");
 		hdl_write_kick = HDLUtils.genInputPort(this, "write_kick");
@@ -70,11 +99,11 @@ public class AXIMemIface32RTL extends HDLModule{
 		buf.getSignalForPort(ram.getSysClkName()).setAssign(null, getSysClk().getSignal());
 		buf.getSignalForPort(ram.getSysResetName()).setAssign(null, getSysReset().getSignal());
 		// for Java-side connection
-		buf.getSignalForPort("address").setAssign(null, addr.getSignal());
-		buf.getSignalForPort("din").setAssign(null, wdata.getSignal());
-		buf.getSignalForPort("we").setAssign(null, we.getSignal());
-		buf.getSignalForPort("oe").setAssign(null, oe.getSignal());
-		rdata.getSignal().setAssign(null, buf.getSignalForPort("dout"));
+		buf.getSignalForPort("address").setAssign(null, addr);
+		buf.getSignalForPort("din").setAssign(null, wdata);
+		buf.getSignalForPort("we").setAssign(null, we);
+		buf.getSignalForPort("oe").setAssign(null, oe);
+		rdata.setAssign(null, buf.getSignalForPort("dout"));
 		length.getSignal().setAssign(null, buf.getSignalForPort("length"));
 		// for internal connection
 		local_addr  = buf.getSignalForPort("address_b");
@@ -219,7 +248,7 @@ public class AXIMemIface32RTL extends HDLModule{
 		SequencerState s4 = seq.addSequencerState("write_s4");
 		s3.addStateTransit(newExpr(HDLOp.AND, newExpr(HDLOp.EQ, count, 1), newExpr(HDLOp.AND, axi.writer.wvalid.getSignal(), axi.writer.wready.getSignal())), s4);
 		
-		// s4
+		// s2
 		s4.addStateTransit(axi.writer.bvalid.getSignal(), seq.getIdleState());
 		axi.writer.wlast.getSignal().setAssign(s4, HDLPreDefinedConstant.LOW);
 		axi.writer.wvalid.getSignal().setAssign(s4, HDLPreDefinedConstant.LOW);
@@ -260,7 +289,7 @@ public class AXIMemIface32RTL extends HDLModule{
 		s1.addStateTransit(newExpr(HDLOp.AND, axi.reader.rvalid.getSignal(), last_word), seq.getIdleState());
 	}
 	public static void main(String... args){
-		AXIMemIface32RTL m = new AXIMemIface32RTL();
+		AXIMemIface32RTL_BRAM_Ext_Ctrl m = new AXIMemIface32RTL_BRAM_Ext_Ctrl();
 		HDLUtils.genHDLSequencerDump(m);
 		//HDLUtils.genResourceUsageTable(m);
 		HDLUtils.generate(m, HDLUtils.VHDL);

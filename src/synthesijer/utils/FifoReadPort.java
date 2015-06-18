@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import synthesijer.hdl.HDLModule;
 import synthesijer.hdl.HDLPort;
+import synthesijer.hdl.HDLUtils;
 
 public class FifoReadPort {
 	
@@ -15,11 +16,11 @@ public class FifoReadPort {
 	public final HDLPort full;
 
 	public FifoReadPort(HDLModule m, String prefix, int width){
-		din = Utils.genInputPort(m, prefix + "din", width, EnumSet.of(HDLPort.OPTION.EXPORT));
-		re = Utils.genOutputPort(m, prefix + "re", EnumSet.of(HDLPort.OPTION.EXPORT));
-		rclk = Utils.genOutputPort(m, prefix + "rclk", EnumSet.of(HDLPort.OPTION.EXPORT));
-		empty = Utils.genInputPort(m, prefix + "empty", EnumSet.of(HDLPort.OPTION.EXPORT));
-		length = Utils.genInputPort(m, prefix + "length", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
-		full = Utils.genInputPort(m, prefix + "full", EnumSet.of(HDLPort.OPTION.EXPORT));
+		din = HDLUtils.genInputPort(m, prefix + "din", width, EnumSet.of(HDLPort.OPTION.EXPORT));
+		re = HDLUtils.genOutputPort(m, prefix + "re", EnumSet.of(HDLPort.OPTION.EXPORT));
+		rclk = HDLUtils.genOutputPort(m, prefix + "rclk", EnumSet.of(HDLPort.OPTION.EXPORT));
+		empty = HDLUtils.genInputPort(m, prefix + "empty", EnumSet.of(HDLPort.OPTION.EXPORT));
+		length = HDLUtils.genInputPort(m, prefix + "length", 32, EnumSet.of(HDLPort.OPTION.EXPORT));
+		full = HDLUtils.genInputPort(m, prefix + "full", EnumSet.of(HDLPort.OPTION.EXPORT));
 	}
 }

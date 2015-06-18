@@ -12,7 +12,6 @@ import synthesijer.hdl.expr.HDLPreDefinedConstant;
 import synthesijer.hdl.expr.HDLValue;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.FifoReadPort;
-import synthesijer.utils.Utils;
 
 public class AXI_Writer extends HDLModule{
 	
@@ -40,13 +39,13 @@ public class AXI_Writer extends HDLModule{
 		fifo = new FifoReadPort(this, "fifo_", width);
 		port = new AxiMasterWritePort(this, "S_AXI_", width);
 		
-		req = Utils.genInputPort(this, "request");
-		busy = Utils.genOutputPort(this, "busy");
+		req = HDLUtils.genInputPort(this, "request");
+		busy = HDLUtils.genOutputPort(this, "busy");
 		
-		addr = Utils.genInputPort(this, "addr", 32);
-		len = Utils.genInputPort(this, "len", 8);
+		addr = HDLUtils.genInputPort(this, "addr", 32);
+		len = HDLUtils.genInputPort(this, "len", 8);
 		
-		debug = Utils.genOutputPort(this, "debug", 8);
+		debug = HDLUtils.genOutputPort(this, "debug", 8);
 		
 		fifo.rclk.getSignal().setAssign(null, getSysClk().getSignal());
 		
