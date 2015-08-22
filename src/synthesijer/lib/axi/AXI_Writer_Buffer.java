@@ -35,7 +35,7 @@ public class AXI_Writer_Buffer extends HDLModule{
 		
 		this.width = width;
 
-		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
+		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), new HDLValue(width));
 		
 		mem = new MemoryReadPort(this, "mem_", width);
 		port = new AxiMasterWritePort(this, "S_AXI_", width);

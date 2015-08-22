@@ -34,7 +34,7 @@ public class AXI_Writer extends HDLModule{
 		
 		this.width = width;
 
-		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
+		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), new HDLValue(width));
 		
 		fifo = new FifoReadPort(this, "fifo_", width);
 		port = new AxiMasterWritePort(this, "S_AXI_", width);

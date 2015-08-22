@@ -9,6 +9,7 @@ import synthesijer.hdl.HDLSequencer;
 import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
+import synthesijer.hdl.expr.HDLValue;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.FifoWritePort;
 
@@ -27,7 +28,7 @@ public class AXI_Reader extends HDLModule{
 	public AXI_Reader(int width){
 		super("axi_reader_" + width, "clk", "reset");
 		this.width = width;
-		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
+		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), new HDLValue(width));
 		
 		fifo = new FifoWritePort(this, "fifo_", width);
 		port = new AxiMasterReadPort(this, "S_AXI_", width);

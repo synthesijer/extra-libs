@@ -9,6 +9,7 @@ import synthesijer.hdl.HDLSequencer;
 import synthesijer.hdl.HDLSignal;
 import synthesijer.hdl.HDLUtils;
 import synthesijer.hdl.expr.HDLPreDefinedConstant;
+import synthesijer.hdl.expr.HDLValue;
 import synthesijer.hdl.sequencer.SequencerState;
 import synthesijer.utils.MemoryWritePort;
 
@@ -28,7 +29,7 @@ public class AXI_Reader_Buffer extends HDLModule{
 	public AXI_Reader_Buffer(int width){
 		super("axi_reader_buffer_" + width, "clk", "reset");
 		this.width = width;
-		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), String.valueOf(width));
+		newParameter("BUF_WIDTH", HDLPrimitiveType.genIntegerType(), new HDLValue(width));
 
 		mem = new MemoryWritePort(this, "mem_", 32);
 		port = new AxiMasterReadPort(this, "S_AXI_", width);
