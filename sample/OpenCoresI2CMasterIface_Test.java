@@ -10,7 +10,7 @@ import synthesijer.lib.wishbone.*;
  */
 public class OpenCoresI2CMasterIface_Test{
 
-    private final OpenCoresI2CMasterIface iface = new OpenCoresI2CMasterIface();
+    private final OpenCoresI2CMasterSimpleIface iface = new OpenCoresI2CMasterSimpleIface();
     private final int SLAVE = 0x39;
 
     public int debug = 0;

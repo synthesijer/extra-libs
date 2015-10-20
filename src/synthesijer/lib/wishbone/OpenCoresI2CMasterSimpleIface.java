@@ -2,7 +2,7 @@ package synthesijer.lib.wishbone;
 
 import synthesijer.rt.*;
 
-public class OpenCoresI2CMasterIface{
+public class OpenCoresI2CMasterSimpleIface{
 
     private final OpenCoresI2CMasterWrapper obj = new OpenCoresI2CMasterWrapper();
 
