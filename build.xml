@@ -14,6 +14,10 @@
             <fileset dir="src">
                 <exclude name="**/*.java"/>
                 <exclude name="**/*.class"/>
+                <exclude name="**/*.vhd"/>
+                <exclude name="**/*.dot"/>
+                <exclude name="**/*.ir"/>
+                <exclude name="**/*.txt"/>
             </fileset>
         </copy>
     </target>

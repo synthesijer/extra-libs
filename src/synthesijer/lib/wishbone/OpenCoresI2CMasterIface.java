@@ -2,36 +2,33 @@ package synthesijer.lib.wishbone;
 
 import synthesijer.rt.*;
 
-public class OpenCoresI2CMaster_Iface{
+public class OpenCoresI2CMasterIface{
 
-    private final OpenCoresI2CMaster_Wrapper iface = new OpenCoresI2CMaster_Wrapper();
+    private final OpenCoresI2CMasterWrapper obj = new OpenCoresI2CMasterWrapper();
 
     private void reg_write(int addr, byte value){
-	iface.wb_adr_i = addr;
-	iface.wb_dat_i = value;
-	iface.wb_cyc_i = true;
-	iface.wb_stb_i = true;
-	iface.wb_we_i = true;
-	iface.wb_we_i = false;
-	iface.wb_stb_i = false;
-	iface.wb_cyc_i = false;
+	obj.wb_adr_i = addr;
+	obj.wb_dat_i = value;
+	obj.wb_cyc_i = true;
+	obj.wb_stb_i = true;
+	obj.wb_we_i = true;
+	obj.wb_we_i = false;
+	obj.wb_stb_i = false;
+	obj.wb_cyc_i = false;
     }
 
     private int dummy = 0;
     private int reg_read(int addr){
-	iface.wb_adr_i = addr;
-	iface.wb_cyc_i = true;
-	iface.wb_stb_i = true;
+	obj.wb_adr_i = addr;
+	obj.wb_cyc_i = true;
+	obj.wb_stb_i = true;
 	dummy = 0; // dummy
 	dummy = 0; // dummy
-	dummy = (int)iface.wb_dat_o;
-	iface.wb_stb_i = false;
-	iface.wb_cyc_i = false;
+	dummy = (int)obj.wb_dat_o;
+	obj.wb_stb_i = false;
+	obj.wb_cyc_i = false;
 	return dummy;
     }
-
-    //private int SLAVE_WR_ADDR = 0x72;
-    //private int SLAVE_RD_ADDR = 0x73;
 
     /*
       7,   W, STA, generate (repeated) start condition
@@ -42,6 +39,12 @@ public class OpenCoresI2CMaster_Iface{
       2:1, W, Reserved
       0,   W, IACK, Interrupt acknowledge. When set, clears a pending interrupt.
     */
+
+    public void init(int prescale){
+	reg_write(0, (byte)(prescale & 0x000000FF));
+	reg_write(1, (byte)((prescale>>8) & 0x000000FF));
+	reg_write(2, (byte)0x80); // CTR(7) <= '1'
+    }
 
     public void i2c_write(int slave_addr, int addr, byte value){
 	// write slave address
@@ -95,22 +98,6 @@ public class OpenCoresI2CMaster_Iface{
 	    if((stat & 0x2) == 0) break;
 	}
 	return reg_read(3);
-    }
-
-    public int debug = 0;
-
-    public void test(){
-	for(int debug = 0; debug < 256; debug++){;} // warm up
-
-	reg_write(0, (byte)0x83); // 66MHz / (5 * 100KHz) - 1 = 131 = 0x83
-	reg_write(1, (byte)0x00); // 66MHz / (5 * 100KHz) - 1 = 131 = 0x83
-	reg_write(2, (byte)0x80); // CTR(7) <= '1'
-
-	i2c_write(0x39, 0x80, (byte)1);
-	debug = i2c_read(0x39, 0x92);
-	
-
-	while(true){;}
     }
 
 }

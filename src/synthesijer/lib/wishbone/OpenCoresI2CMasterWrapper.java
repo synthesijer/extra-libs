@@ -4,7 +4,11 @@ import synthesijer.hdl.*;
 import synthesijer.hdl.expr.*;
 import java.util.*;
 
-public class OpenCoresI2CMaster_Wrapper extends HDLModule{
+/**
+ * This is a wrapper module for I2C Master
+ * "i2c_master_top" and related source codes are available at http://opencores.org/project,i2c
+ */
+public class OpenCoresI2CMasterWrapper extends HDLModule{
 
     public int wb_adr_i;
     public byte wb_dat_i;
@@ -15,7 +19,7 @@ public class OpenCoresI2CMaster_Wrapper extends HDLModule{
     public boolean wb_ack_i;
     public boolean wb_inta_i;
 
-    public OpenCoresI2CMaster_Wrapper(String... args){
+    public OpenCoresI2CMasterWrapper(String... args){
 
 	super("i2c_master_top", "wb_clk_i", "wb_rst_i");
 
