@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <project basedir="." default="build" name="synthesijer-applications">
+    <project basedir="." default="build" name="synthesijer_extra-libs">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.8"/>
     <property name="source" value="1.8"/>
-    <path id="synthesijer-applications.classpath">
+    <path id="synthesijer_extra-libs.classpath">
         <pathelement location="bin"/>
         <pathelement location="${env.SYNTHESIJER}"/>
     </path>
@@ -22,9 +22,9 @@
     <target depends="build-project" name="build"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}" encoding="utf-8">
             <src path="src"/>
-            <classpath refid="synthesijer-applications.classpath"/>
+            <classpath refid="synthesijer_extra-libs.classpath"/>
         </javac>
     </target>
 </project>

@@ -21,7 +21,7 @@ all: $(SRC)
 	ant -f build.xml
 	for i in $(subst /,.,$(subst bin/,,$(basename $^))) ;\
 	do \
-		java -cp $(SYNTHESIJER):bin $$i ; \
+		java -Dfile.encoding=utf-8 -cp $(SYNTHESIJER):bin $$i ; \
 	done
 	mkdir -p hdl/vhdl/
 	mv *.vhd hdl/vhdl/
