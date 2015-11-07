@@ -20,13 +20,13 @@ architecture RTL of top is
     port (
       clk : in std_logic;
       reset : in std_logic;
-      class_iface_0000_class_obj_0000_arst_i_exp_exp : in std_logic;
-      class_iface_0000_class_obj_0000_scl_pad_i_exp_exp : in std_logic;
-      class_iface_0000_class_obj_0000_scl_pad_o_exp_exp : out std_logic;
-      class_iface_0000_class_obj_0000_scl_padoen_o_exp_exp : out std_logic;
-      class_iface_0000_class_obj_0000_sda_pad_i_exp_exp : in std_logic;
-      class_iface_0000_class_obj_0000_sda_pad_o_exp_exp : out std_logic;
-      class_iface_0000_class_obj_0000_sda_padoen_o_exp_exp : out std_logic;
+      iface_obj_arst_i_exp : in std_logic;
+      iface_obj_scl_pad_i_exp : in std_logic;
+      iface_obj_scl_pad_o_exp : out std_logic;
+      iface_obj_scl_padoen_o_exp : out std_logic;
+      iface_obj_sda_pad_i_exp : in std_logic;
+      iface_obj_sda_pad_o_exp : out std_logic;
+      iface_obj_sda_padoen_o_exp : out std_logic;
       debug_in : in signed(32-1 downto 0);
       debug_we : in std_logic;
       debug_out : out signed(32-1 downto 0);
@@ -112,13 +112,13 @@ begin
   U: OpenCoresI2CMasterIface_Test port map(
       clk => CLK,
       reset => RESET,
-      class_iface_0000_class_obj_0000_arst_i_exp_exp => '1',
-      class_iface_0000_class_obj_0000_scl_pad_i_exp_exp => scl_pad_i,
-      class_iface_0000_class_obj_0000_scl_pad_o_exp_exp => scl_pad_o,
-      class_iface_0000_class_obj_0000_scl_padoen_o_exp_exp => scl_padoen_o,
-      class_iface_0000_class_obj_0000_sda_pad_i_exp_exp => sda_pad_i,
-      class_iface_0000_class_obj_0000_sda_pad_o_exp_exp => sda_pad_o,
-      class_iface_0000_class_obj_0000_sda_padoen_o_exp_exp => sda_padoen_o,
+      iface_obj_arst_i_exp => '1',
+      iface_obj_scl_pad_i_exp => scl_pad_i,
+      iface_obj_scl_pad_o_exp => scl_pad_o,
+      iface_obj_scl_padoen_o_exp => scl_padoen_o,
+      iface_obj_sda_pad_i_exp => sda_pad_i,
+      iface_obj_sda_pad_o_exp => sda_pad_o,
+      iface_obj_sda_padoen_o_exp => sda_padoen_o,
       debug_in => (others => '0'),
       debug_we => '0',
       debug_out => debug,
