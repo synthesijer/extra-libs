@@ -19,6 +19,7 @@ public class SimpleFifo32 extends HDLModule{
 		full = HDLUtils.genOutputPort(this, "full");
 		count = HDLUtils.genOutputPort(this, "count", 32);
 		
+		newModuleInstance(new SimpleFifo(), "U");
 	}
 
 }
