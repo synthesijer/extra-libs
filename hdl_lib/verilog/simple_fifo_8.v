@@ -10,12 +10,12 @@ module simple_fifo_8 #(parameter WIDTH = 8, parameter DEPTH = 8)
     input wire 		   re,
     //output reg [WIDTH-1:0] dout,
     output wire [WIDTH-1:0] dout,
-    output reg 		   empty,
-    output reg 		   full,
-    output reg [WIDTH-1:0] count
+    output wire		   empty,
+    output wire		   full,
+    output wire [WIDTH-1:0] count
     );
    
-    simple_fifo#(WIDTH=8, DEPTH=8) U(
+    simple_fifo#(.WIDTH(WIDTH), .DEPTH(DEPTH)) U(
 	.clk(clk),
 	.reset(reset),
 	.we(we),
