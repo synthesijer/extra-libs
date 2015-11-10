@@ -96,15 +96,15 @@ module simple_fifo #(parameter WIDTH = 32, parameter DEPTH = 8)
                count_tmp = head_tmp - tail_tmp;
             end
          end // else: !if(head_tmp == tail_tmp)
-	 
-	 head   <= head_tmp;
-	 tail   <= tail_tmp;
-	 looped <= looped_tmp;
-	 count  <= count_tmp;
-	 full   <= full_tmp;
-	 empty  <= empty_tmp;
-	 
+	 	 
       end // else: !if(reset == 1'b1)
+      
+      head   <= head_tmp;
+      tail   <= tail_tmp;
+      looped <= looped_tmp;
+      count  <= count_tmp;
+      full   <= full_tmp;
+      empty  <= empty_tmp;
       
    end // always @ (posedge clk)
   

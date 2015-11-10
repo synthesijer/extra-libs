@@ -27,7 +27,7 @@ architecture RTL of simple_fifo is
   constant FIFO_SIZE : integer := 2**DEPTH;
 
   signal head   : signed(31 downto 0);
-  signal tail   : signed(31 downto 0);
+  signal tail   : signed(31 downto 0) := (others => '0');
   signal looped : std_logic;
   
   type MEMORY is array (0 to FIFO_SIZE-1) of std_logic_vector(WIDTH-1 downto 0);
@@ -38,6 +38,8 @@ architecture RTL of simple_fifo is
 
 begin
   
+  dout <= mem(to_integer(tail));
+
   process (clk)
     
     variable head_tmp   : signed(31 downto 0) := (others => '0');
@@ -49,9 +51,7 @@ begin
     
   begin
             
-    dout <= mem(to_integer(tail_tmp));
-
-    if clk'event and clk = '1' then
+    if rising_edge(clk) then
       
       head_tmp   := head;
       tail_tmp   := tail;
