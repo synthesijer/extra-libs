@@ -38,12 +38,13 @@ public class FreeRunCounter64Iface
     counter_get = 0;
   }
 
-  public void cycle_wait(long clocks)
+  public void cycleWait(int clocks)
   {
+    long diff;
     counter_wait += clocks;
-    while (obj.data < counter_wait)
+    do
     {
-      // wait
-    }
+      diff = counter_wait - obj.data;
+    } while (diff > 0);
   }
 }

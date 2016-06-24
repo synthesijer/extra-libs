@@ -35,7 +35,7 @@ public class FreeRunCounterExample
     {
       seconds += 1;
       led.set(seconds);
-      counter.cycle_wait(COUNT);
+      counter.cycleWait(COUNT);
     }
   }
 }
