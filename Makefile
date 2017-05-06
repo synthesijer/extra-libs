@@ -8,6 +8,7 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
       ./bin/synthesijer/lib/axi/SimpleAXIMemIface32RTL.class \
       ./bin/synthesijer/lib/axi/AXIMemIface128RTL_BRAM_Ext_Ctrl.class \
       ./bin/synthesijer/lib/axi/AXIMemIface32RTL_BRAM_Ext_Ctrl.class \
+      ./bin/synthesijer/lib/axi/AXIMemIface64RTL_BRAM_Ext_Ctrl.class \
       ./bin/synthesijer/lib/axi/AXIMemIface512RTL_BRAM_Ext_Ctrl.class \
       ./bin/synthesijer/lib/upl/UPLInputPort.class \
       ./bin/synthesijer/lib/upl/UPLOutputPort.class \
