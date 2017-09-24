@@ -37,6 +37,7 @@ module audio_output
   parameter FIFO_DEPTH_IN_BITS = 4;
 
   // data write
+  wire          we_cw;
   reg           toggle;
   reg           toggle_prev;
   reg [31:0]    data_in;
@@ -62,6 +63,7 @@ module audio_output
   // data read
   wire          req_ca;
   wire          empty_ca;
+  wire          valid_ca;
   reg [15+1:0]  sample_sum_r_ca;
   reg [15+1:0]  sample_sum_l_ca;
   wire [31:0]   data_out_ca;
