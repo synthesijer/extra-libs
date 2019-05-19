@@ -23,11 +23,13 @@ top_module/top.v : HDL側トップモジュールのサンプル
 
 bemicro_max10 ディレクトリ : BeMicro Max 10向けプロジェクトファイル。使用方法は bemicro_max10/readme.txt を参照してください。
 
+de0-cv ディレクトリ : Terasic DE0-CV向けプロジェクトファイル。使用方法は de0-cv/readme.txt を参照してください。
+
 testbench ディレクトリ : Icarus Verilogコンパイラ用シミュレーション・ソースコード。使用方法は testbench/readme.txt を参照してください。
 
 ●使用ライブラリファイル
 extra-libs/hdl_lib/verilog:
-audio_output.v  cdc_fifo.v  dual_clk_ram.v  synchronizer.v
+audio_output.v  cdc_fifo.v  dual_clk_ram.v  shift_register_vector.v
 
 extra-libs/src/synthesijer/lib/audio:
 AudioOutputIface.java  AudioOutputWrapper.java

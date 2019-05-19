@@ -6,7 +6,7 @@ SYNTHESIJER_EXTRA_LIB?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesi
 
 CLASSPATH=$(SYNTHESIJER):$(SYNTHESIJER_EXTRA_LIB)/bin:.
 
-LIB_SJR_VERILOG=audio_output.v cdc_fifo.v dual_clk_ram.v synchronizer.v
+LIB_SJR_VERILOG=audio_output.v cdc_fifo.v dual_clk_ram.v shift_register_vector.v
 
 SOURCES=AudioOutputExample.java $(SYNTHESIJER_EXTRA_LIB)/src/synthesijer/lib/audio/*.java
 

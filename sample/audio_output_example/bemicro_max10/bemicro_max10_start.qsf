@@ -6,11 +6,13 @@ set_global_assignment -name PROJECT_CREATION_TIME_DATE "22:17:43  AUGUST 05, 201
 set_global_assignment -name LAST_QUARTUS_VERSION 15.0.2
 
 set_global_assignment -name VERILOG_FILE ../AudioOutputExample.v
-set_global_assignment -name VERILOG_FILE ../synchronizer.v
 set_global_assignment -name VERILOG_FILE ../audio_output.v
 set_global_assignment -name VERILOG_FILE ../synthesijer_lib_audio_AudioOutputIface.v
 set_global_assignment -name VERILOG_FILE ../cdc_fifo.v
 set_global_assignment -name VERILOG_FILE ../dual_clk_ram.v
+set_global_assignment -name VERILOG_FILE ../shift_register_vector.v
+
+set_global_assignment -name SDC_FILE bemicro_max10_start.sdc
 
 set_location_assignment PIN_F5 -to AIN[0]
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to AIN[0]
