@@ -17,7 +17,8 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
       ./bin/synthesijer/lib/upl/UPLPortSim.class \
       ./bin/synthesijer/utils/ExternalMemory32.class 
 
-SYNTHESIJER ?= ../synthesijer/bin
+SYNTHESIJER ?= ../synthesijer/synthesijer.jar
+export SYNTHESIJER
 
 all: $(SRC)
 	ant -f build.xml
