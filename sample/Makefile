@@ -1,4 +1,4 @@
-SYNTHESIJER ?= ../../synthesijer/synthesijer.jar
+SYNTHESIJER ?= ../../synthesijer.jar
 SYNTHESIJER_EXT_LIB ?= ../bin
 
 all:
@@ -6,9 +6,9 @@ all:
 
 clean:
 	-rm -f *.class
-	-rm -f OpenCoresI2CMasterIface_Test*.dot
-	-rm -f OpenCoresI2CMasterIface_Test*.ir
-	-rm -f OpenCoresI2CMasterIface_Test*.txt
-	-rm -f OpenCoresI2CMasterIface_Test*.vhd
-	-rm -f OpenCoresI2CMasterIface_Test*.v
+	-rm -f OpenCoresI2CMaster*.dot
+	-rm -f OpenCoresI2CMaster*.ir
+	-rm -f OpenCoresI2CMaster*.txt
+	-rm -f OpenCoresI2CMaster*.vhd
+	-rm -f OpenCoresI2CMaster*.v
 	-rm -f ../src/synthesijer/lib/wishbone/*.class 
