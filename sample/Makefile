@@ -1,4 +1,4 @@
-SYNTHESIJER ?= ../../synthesijer/bin
+SYNTHESIJER ?= ../../synthesijer/synthesijer.jar
 SYNTHESIJER_EXT_LIB ?= ../bin
 
 all:
