@@ -34,7 +34,10 @@ all: $(SRC)
 	-rm -f *.dot
 	-rm -f *.html
 
+$(SRC):
+
 clean:
+	ant clean
 	-rm -f *.vhd
 	-rm -f *.v
 	-rm -f *.txt
