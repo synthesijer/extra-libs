@@ -3,13 +3,9 @@ FreeRunCounterライブラリの使用サンプルです。
 
 ●動作環境
 Linux上でのビルドを想定しています。
-Synthesijerは
-http://synthesijer.github.io/web
-のセットアップスクリプト（setup_[日付].sh）でインストールしていることを前提にしています。
 
 ●コンパイル方法
 cd free_run_counter_example
-source $HOME/synthesijer/synthesijer_env.sh
 make
 
 ●ファイル説明

@@ -2,9 +2,6 @@
 
 ●動作環境
 Linux上でのビルドを想定しています。
-Synthesijerは
-http://synthesijer.github.io/web
-のセットアップスクリプト（setup_[日付].sh）でインストールしていることを前提にしています。
 
 ●音声出力回路について
 このライブラリで音声を出力するためには以下の回路を製作する必要があります。
@@ -13,7 +10,6 @@ schematic/breadboard_audio.png : ブレッドボードでの実装例
 
 ●コンパイル方法
 cd audio_output_example
-source $HOME/synthesijer/synthesijer_env.sh
 make
 
 ●ファイル説明

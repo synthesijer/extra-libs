@@ -7,6 +7,6 @@ sudo apt-get install iverilog gtkwave
 
 testbench ディレクトリにcdして以下のコマンドを実行するとコンパイルとシミュレーションが実行されます。
 
-./runtestbench.sh
+make run
 
 出力されたwave.vcdというファイルをgtkwaveで開くと信号波形を見ることができます。
