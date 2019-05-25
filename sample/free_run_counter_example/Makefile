@@ -1,8 +1,8 @@
-SYNTHESIJER?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer*.jar)))
+SYNTHESIJER?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer*.jar)) $(wildcard $(HOME)/synthesijer/synthesijer.jar) $(wildcard ../../../synthesijer.jar))
 
-SYNTHESIJER_LIB?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer_lib_????????)))
+SYNTHESIJER_LIB?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer_lib_????????)) $(wildcard $(HOME)/synthesijer/lib) $(wildcard ../../../../synthesijer/lib))
 
-SYNTHESIJER_EXTRA_LIB?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer_extra-libs_????????)))
+SYNTHESIJER_EXTRA_LIB?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer_extra-libs_????????)) $(wildcard $(HOME)/synthesijer/extra-libs) $(wildcard ../../../../synthesijer/extra-libs))
 
 CLASSPATH=$(SYNTHESIJER):$(SYNTHESIJER_EXTRA_LIB)/bin:.
 
