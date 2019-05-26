@@ -1,13 +1,19 @@
-LEDインターフェース・ライブラリの使用サンプルです。
+# LEDインターフェース・ライブラリの使用サンプル
 
-●動作環境
+## 動作環境
+
 Linux上でのビルドを想定しています。
 
-●コンパイル方法
-cd led_array_example
-make
+## コンパイル方法
 
-●ファイル説明
+```
+cd led_array_example
+
+make
+```
+
+## ファイル説明
+
 LEDArrayExample.java : サンプル本体
 
 top_module/top.v : HDL側トップモジュールのサンプル
@@ -18,16 +24,25 @@ max10fb ディレクトリ : 「FPGA電子工作スーパーキット」付録�
 
 testbench ディレクトリ : Icarus Verilogコンパイラ用シミュレーション・ソースコード。使用方法は testbench/readme.txt を参照してください。
 
-●使用ライブラリファイル
+## 使用ライブラリファイル
+
 extra-libs/hdl_lib/verilog:
+
 led_array.v
 
-extra-libs/src/synthesijer/lib/led:
-LEDArrayIface.java  LEDArrayWrapper.java
 
-●連絡先
+extra-libs/src/synthesijer/lib/led:
+
+LEDArrayIface.java
+
+LEDArrayWrapper.java
+
+## 連絡先
+
 このライブラリとサンプルはSynthesijerユーザーのコミュニティにより開発されたものです。バグや問題点などは以下のページでご連絡ください。
+
 https://github.com/synthesijer/extra-libs/issues
 
 メンテナ : miya
+
 https://github.com/miya4649
