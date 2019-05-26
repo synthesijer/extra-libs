@@ -39,6 +39,7 @@ $(SRC):
 
 clean:
 	ant clean
+	-rm -f src/synthesijer/lib/axi/*.class
 	-rm -f *.vhd
 	-rm -f *.v
 	-rm -f *.txt
@@ -48,3 +49,5 @@ clean:
 	-rm -f a.out
 	-rm -rf hdl
 	-rm -f work-obj93.cf
+	-rm -f src/synthesijer/lib/axi/*.class
+

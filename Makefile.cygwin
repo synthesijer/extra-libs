@@ -8,14 +8,17 @@ SRC = ./bin/synthesijer/lib/axi/AXI_Reader.class \
       ./bin/synthesijer/lib/axi/SimpleAXIMemIface32RTL.class \
       ./bin/synthesijer/lib/axi/AXIMemIface128RTL_BRAM_Ext_Ctrl.class \
       ./bin/synthesijer/lib/axi/AXIMemIface32RTL_BRAM_Ext_Ctrl.class \
+      ./bin/synthesijer/lib/axi/AXIMemIface64RTL_BRAM_Ext_Ctrl.class \
       ./bin/synthesijer/lib/axi/AXIMemIface512RTL_BRAM_Ext_Ctrl.class \
+      ./bin/synthesijer/lib/axi/AXIMemIface64RTL_Sim.class \
       ./bin/synthesijer/lib/upl/UPLInputPort.class \
       ./bin/synthesijer/lib/upl/UPLOutputPort.class \
       ./bin/synthesijer/lib/upl/UPLPort.class \
       ./bin/synthesijer/lib/upl/UPLPortSim.class \
       ./bin/synthesijer/utils/ExternalMemory32.class 
 
-SYNTHESIJER ?= ../synthesijer/bin
+SYNTHESIJER ?= ../synthesijer.jar
+export SYNTHESIJER
 
 all: $(SRC)
 	ant -f build.xml
@@ -32,7 +35,10 @@ all: $(SRC)
 	-rm -f *.dot
 	-rm -f *.html
 
+$(SRC):
+
 clean:
+	ant clean
 	-rm -f *.vhd
 	-rm -f *.v
 	-rm -f *.txt

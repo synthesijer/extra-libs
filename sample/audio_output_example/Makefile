@@ -25,5 +25,5 @@ clean:
 	-rm -f *.o
 	-rm -f sim
 	-rm -f *.vcd
-	-rm -f *.txt
+	-rm -f $(filter-out readme.txt, $(wildcard *.txt))
 	-rm -f *.ir

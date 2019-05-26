@@ -6,9 +6,9 @@ all:
 
 clean:
 	-rm -f *.class
-	-rm -f OpenCoresI2CMaster*.dot
-	-rm -f OpenCoresI2CMaster*.ir
-	-rm -f OpenCoresI2CMaster*.txt
-	-rm -f OpenCoresI2CMaster*.vhd
-	-rm -f OpenCoresI2CMaster*.v
+	-rm -f *.dot
+	-rm -f *.ir
+	-rm -f *OpenCoresI2CMaster*.txt
+	-rm -f *OpenCores*.vhd
+	-rm -f *OpenCores*.v
 	-rm -f ../src/synthesijer/lib/wishbone/*.class 
