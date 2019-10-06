@@ -1,4 +1,4 @@
-SYNTHESIJER?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer*.jar)) $(wildcard $(HOME)/synthesijer/synthesijer.jar) $(wildcard ../../../synthesijer.jar))
+SYNTHESIJER?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer*.jar)) $(wildcard $(HOME)/synthesijer/synthesijer.jar) $(wildcard ../../../target/synthesijer))
 
 SYNTHESIJER_LIB?=$(lastword $(sort $(wildcard $(HOME)/synthesijer/synthesijer_lib_????????)) $(wildcard $(HOME)/synthesijer/lib) $(wildcard ../../../../synthesijer/lib))
 
