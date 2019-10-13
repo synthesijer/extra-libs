@@ -33,7 +33,7 @@ clean:
 	-rm -f *.o
 	-rm -f *.vcd
 	-rm -f work-obj93.cf
-	-rm -f *.txt
+	-rm -f *.tmp_info
 	-rm -f *.ir
 	-rm -f synthesijer_lib_axi_AXIMemIface32RTLTest.v
 	-rm -f synthesijer_lib_axi_AXIMemIface32RTLTest.vhd

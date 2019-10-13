@@ -42,7 +42,7 @@ clean:
 	-rm -f src/synthesijer/lib/axi/*.class
 	-rm -f *.vhd
 	-rm -f *.v
-	-rm -f *.txt
+	-rm -f *.tmp_info
 	-rm -f *.html
 	-rm -f *.dot
 	-rm -f *.o

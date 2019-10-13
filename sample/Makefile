@@ -8,6 +8,7 @@ clean:
 	-rm -f *.class
 	-rm -f *.dot
 	-rm -f *.ir
+	-rm -f *.tmp_info
 	-rm -f *OpenCoresI2CMaster*.txt
 	-rm -f *OpenCores*.vhd
 	-rm -f *OpenCores*.v
